@@ -125,7 +125,8 @@ def generateData(scale,base,namenode ):
 
     result = Hadoop.run(jarFile,scale,base)
     print result
-
+    result = Hadoop.setrep(2,base)
+    print result
 
 
 # Create base directory or exit if it exists

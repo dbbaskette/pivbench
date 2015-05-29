@@ -21,4 +21,11 @@ def run(jarFile,scale,base):
         print e
         return (-1,e.stderr)
 
+def setrep(repFactor,dirName):
+    try:
+        return (0,sh.hadoop("-setrep","-R",repFactor,dirName))
+    except sh.ErrorReturnCode as e:
+        print e
+        return (-1,e.stderr)
+
 # cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
