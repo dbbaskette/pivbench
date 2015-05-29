@@ -16,7 +16,7 @@ import wget
 import sh
 import getpass
 from utils import ssh, PackageManager,Hadoop
-
+import datetime
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
@@ -305,10 +305,10 @@ def analyzeHawqTables(master,database,username,password):
     with queries.Session(hawqURI) as session:
         for table in dimensionTables:
             ddlString = "analyze "+table
-            startTime = time.time()
+            startTime = datetime.datetime.now()
             print "Start "+ddlString+": "+str(startTime)
             result = session.query(ddlString)
-            stopTime = time.time()
+            stopTime = datetime.datetime.now()
             print "Completed "+ddlString+": "+str(stopTime)
             print "Elapsed Time: "+str(stopTime - startTime)
             print "----------------------------------------"
