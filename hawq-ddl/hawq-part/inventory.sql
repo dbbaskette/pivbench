@@ -7,6 +7,6 @@ create table inventory
     inv_quantity_on_hand      integer
 ) distributed by (inv_date_sk, inv_item_sk, inv_warehouse_sk)
 partition by range(inv_date_sk)
-(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (30),
+(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
 default partition outliers
 );

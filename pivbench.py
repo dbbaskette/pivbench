@@ -219,11 +219,12 @@ def getGpadminCreds():
 
 
 def cliParse():
-    VALID_ACTION = ["load","gen","query"]
+    VALID_ACTION = ["load","gen","query","part"]
     parser = argparse.ArgumentParser(description='Pivotal HAWQ TPC-DS Loader')
     subparsers = parser.add_subparsers(help='sub-command help', dest="subparser_name")
     parser_load = subparsers.add_parser("load", help="Load data into HAWQ")
     parser_gen = subparsers.add_parser("gen", help="Build Data Generator and Generate RAW Data into HDFS")
+    parser_part = subparsers.add_parser("part", help="Partition the Fact Tables")
 
     parser_query = subparsers.add_parser("query", help="Query the Database")
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
@@ -252,6 +253,11 @@ def cliParse():
     parser_gen.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
 
+    parser_part.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
+                               required=True)
+    parser_part.add_argument("--num", dest='parts', action="store", help="Number of Partitions",
+                               required=True)
+
     args = parser.parse_args()
     main(args)
 
@@ -266,10 +272,12 @@ def loadHawqTables(master,username,password,database):
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     loadList = glob.glob('./hawq-ddl/load/*.sql')
 
+
+
     with queries.Session(hawqURI) as session:
         for load in loadList:
             ddlFile = open(load,"r")
-            tableName = ((load.split("/")[3]).split(".")[0])[:5]
+            tableName = ((load.split("/")[3]).split(".")[0])[:-5]
             print "Loading: "+tableName
             loadDDL = ddlFile.read()
             result = session.query(loadDDL)
@@ -308,7 +316,30 @@ def getDatabase(master,username,password):
         print "Database already exists. It will be used for Data Loading"
     return dbName
 
+def partitionTables(master,parts,username,password,database):
+    print "Partitioning Tables into "+str(parts)+" Partitions each"
+    hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    loadList = glob.glob('./hawq-ddl/load_part/*.sql')
+    tableList = glob.glob('./hawq-ddl/hawq_part/*.sql')
+    print tableList
+    with queries.Session(hawqURI) as session:
+        for table in tableList:
+            print table
+            ddlFile = open(table,"r")
+            tableName = (table.split("/")[3]).split(".")[0]
+            print "Creating Table: "+tableName
+            tableDDL = ddlFile.read()
+            tableDDL = tableDDL.replace("$PARTS",parts)
+            result = session.query(tableDDL)
 
+    with queries.Session(hawqURI) as session:
+        for load in loadList:
+            ddlFile = open(load,"r")
+            tableName = ((load.split("/")[3]).split(".")[0])[:-5]
+            print "Loading: "+tableName
+            loadDDL = ddlFile.read()
+
+            result = session.query(loadDDL)
 
 
 def main(args):
@@ -330,7 +361,15 @@ def main(args):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
-        executeQueries(args.hawqMaster,"gpadmin","gpadmin",args.queryNum,args.hostsFile)
+        print '\n\n\n'
+        password = getGpadminCreds()
+        database = getDatabase(args.hawqMaster,username,password)
+        executeQueries(args.hawqMaster,username,password,args.queryNum,args.hostsFile)
+    elif (args.subparser_name=="part"):
+        print '\n\n\n'
+        password = getGpadminCreds()
+        database = getDatabase(args.hawqMaster,username,password)
+        partitionTables(args.hawqMaster,args.parts,username,password,database)
 
 
 

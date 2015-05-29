@@ -27,6 +27,6 @@ create table web_returns
     wr_net_loss               decimal(7,2)
 ) distributed by (wr_item_sk, wr_order_number)
 partition by range(wr_returned_date_sk)
-(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (7),
+(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
 default partition outliers
 );
