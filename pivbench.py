@@ -319,12 +319,10 @@ def getDatabase(master,username,password):
 def partitionTables(master,parts,username,password,database):
     print "Partitioning Tables into "+str(parts)+" Partitions each"
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    loadList = glob.glob('./hawq-ddl/load_part/*.sql')
-    tableList = glob.glob('./hawq-ddl/hawq_part/*.sql')
-    print tableList
+    loadList = glob.glob('./hawq-ddl/load-part/*.sql')
+    tableList = glob.glob('./hawq-ddl/hawq-part/*.sql')
     with queries.Session(hawqURI) as session:
         for table in tableList:
-            print table
             ddlFile = open(table,"r")
             tableName = (table.split("/")[3]).split(".")[0]
             print "Creating Table: "+tableName
