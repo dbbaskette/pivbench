@@ -228,6 +228,8 @@ def cliParse():
     parser_query = subparsers.add_parser("query", help="Query the Database")
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
                                required=True)
+    parser_query.add_argument("--db", dest='database', action="store", help="Database to Query",
+                               required=True)
     parser_query.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_query.add_argument("--hosts", dest='hostsFile', action="store", help="List of Segment Hosts",
@@ -242,6 +244,8 @@ def cliParse():
                                required=True)
     parser_load.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
                                required=True)
+    parser_load.add_argument("--db", dest='database', action="store", help="Database to Load",
+                               required=True)
     # Add HIVE Support Later
     #parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
     #                          required=True)
@@ -255,6 +259,8 @@ def cliParse():
     parser_part.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_part.add_argument("--num", dest='parts', action="store", help="Number of Partitions",
+                               required=True)
+    parser_part.add_argument("--db", dest='database', action="store", help="Database with Tables",
                                required=True)
 
     args = parser.parse_args()
@@ -349,24 +355,24 @@ def main(args):
     if (args.subparser_name == "load"):
         print '\n\n\n'
         password = getGpadminCreds()
-        database = getDatabase(args.hawqMaster,username,password)
+        #database = getDatabase(args.hawqMaster,username,password)
         dbLogger.info( "HAWQ Testing")
         #createTables(args.hawqMaster,database,username,password)
         #createPXFTables(args.hawqMaster,database,username,password,args.scale,args.base,args.namenode)
-        loadHawqTables(args.hawqMaster,username,password,database)
+        loadHawqTables(args.hawqMaster,username,password,args.database)
     elif (args.subparser_name =="gen"):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
         print '\n\n\n'
         password = getGpadminCreds()
-        database = getDatabase(args.hawqMaster,username,password)
-        executeQueries(args.hawqMaster,database,username,password,args.queryNum,args.hostsFile)
+        #database = getDatabase(args.hawqMaster,username,password)
+        executeQueries(args.hawqMaster,args.database,username,password,args.queryNum,args.hostsFile)
     elif (args.subparser_name=="part"):
         print '\n\n\n'
         password = getGpadminCreds()
-        database = getDatabase(args.hawqMaster,username,password)
-        partitionTables(args.hawqMaster,args.parts,username,password,database)
+        #database = getDatabase(args.hawqMaster,username,password)
+        partitionTables(args.hawqMaster,args.parts,username,password,args.database)
 
 
 
