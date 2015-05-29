@@ -303,9 +303,14 @@ def analyzeHawqTables(master,database,username,password):
     dbLogger.info( ("Loading Hawq Internal Tables"))
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     with queries.Session(hawqURI) as session:
-        ddlFile = open("./hawq-ddl/util/analyze.sql","r")
-        analyzeDDL = ddlFile.read()
-        result = session.query(analyzeDDL)
+        for table in dimensionTables:
+            ddlString = "analyze "+table
+            print ddlString
+            result = session.query(ddlString)
+        for table in factTables:
+            ddlString = "analyze "+table
+            print ddlString
+            result = session.query(ddlString)
 
 
 def getDatabase(master,username,password):
