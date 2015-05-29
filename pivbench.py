@@ -106,10 +106,6 @@ def dsdgenPrepare(host,username,password):
     ssh.exec_command2(host,"root","password",'rm -f /tmp/*.dat')
 
 
-#def (host,installCmd,username,password):
-  #  print installCmd
-   # ssh.exec_command2(host,"root","password",installCmd)
-
 
 def generateData(scale,base,namenode ):
     print "Data Generation"
@@ -135,63 +131,6 @@ def generateData(scale,base,namenode ):
     result = Hadoop.setrep(2,base)
 
 
-# Create base directory or exit if it exists
-# cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
-# check directory for files for success or failure
-
-
-    # segmentCount=0
-    # hawqInfo={}
-    # i=0
-
-
-
-    #     segments  = getSegmentMapping(host)
-    #     if len(segments)>0:
-    #         i+=1
-    #         hawqInfo[host]=segments
-    #         hostSegCount = len(segments)
-    #         segmentCount += hostSegCount
-    #         t = Thread(target=dsdgenPrepare(host,"root","password"), args=(i,))
-    #         t.start()
-    #
-    #
-    # print hawqInfo
-    # i=0
-    # for host in hawqInfo:
-    #     for segment in hawqInfo[host]:
-    #         i+=1
-    #         installCmd = "/tmp/dsdgen -SCALE %s -PARALLEL %s -CHILD %s -TERMINATE N -FILTER Y -QUIET Y -DISTRIBUTIONS /tmp/tpcds.idx -TABLE $1" % (scale,"$GP_SEGMENT_COUNT","$(( GP_SEGMENT_ID + 1 ))")
-    #         with open("dsdgen-launch.sh","w") as launcher:
-    #             launcher.write(installCmd)
-    #         ssh.putFile(host,"dsdgen-launch.sh","root","password")
-    #         ssh.exec_command2(host,"root","password",'chmod +x /tmp/dsdgen-launch.sh')
-
-
-    # hawqURI=queries.uri("10.103.42.155", port=5432, dbname='tpcds', user="gpadmin", password="gpadmin")
-    #
-    # with queries.Session(hawqURI) as session:
-    #     result = session.query("DROP EXTERNAL TABLE IF EXISTS ext_date_dim; CREATE EXTERNAL WEB TABLE ext_date_dim (LIKE date_dim) EXECUTE '/tmp/dsdgen-launch.sh date_dim' ON ALL FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1' SEGMENT REJECT LIMIT 1 PERCENT;")
-    #     print result
-
-
-# def createExternalTables(ipAddress,username,password):
-#     dbLogger.info( "---------------------------------")
-#     dbLogger.info( "Creating External Web Tables")
-#     dbLogger.info( "---------------------------------")
-#     conn = psycopg2.connect(database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-#     tables = glob.glob('./hawq-ddl/externaltables/*.sql')
-#     cur = conn.cursor()
-#     for table in tables:
-#         print table
-#         ddlFile = open(table,"r")
-#         ddlString = ddlFile.read()
-#         dbLogger.info( "Creating External Table: "+table)
-#         cur.execute(ddlString)
-#         conn.commit()
-#
-#     cur.close()
-#     conn.close()
 
 
 def createTables(master,database,username,password):
@@ -211,7 +150,7 @@ def createTables(master,database,username,password):
 
 
 
-def createPXFTables(master,database,username,password,base,scale,namenode):
+def createPXFTables(master,database,username,password,scale,base,namenode):
 
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Creating HAWQ Internal Tables")
@@ -227,7 +166,7 @@ def createPXFTables(master,database,username,password,base,scale,namenode):
             tableDDL = ddlFile.read()
             tableDDL = tableDDL.replace("$NAMENODE",namenode)
             tableDDL = tableDDL.replace("$SCALE",scale)
-            tableDDL = tableDDL.replace("$BASE",base)
+            tableDDL = tableDDL.replace("$BASE",base[1:])
             result = session.query(tableDDL)
 
 
@@ -271,31 +210,7 @@ def executeQueries(ipAddress,username,password,queryNum,hostsFile):
             queryTime = stopTime - startTime
 
             dbLogger.info("Query: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (queryName,queryTime,str(result.count())))
-        #for row in session.query("select * from pg_stat_activity"):
-        #    print row
-    #conn = psycopg2.connect(database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-    # conn = psycopg2.connect(connection_factory=LoggingConnection, database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-    # conn.initialize(logger)
-    #
-    # queries = glob.glob('./hawq-ddl/queries/*.sql')
-    # cur = conn.cursor()
-    # for query in queries:
-    #     ddlFile = open(query,"r")
-    #     ddlString = ddlFile.read()
-    #     logging.info( "Executing  "+query)
-    #     cur.execute(ddlString)
-    #     started = time.time()
-    #     print started
-    #     conn.commit()
-    #     completed = time.time()
-    #     print "Total Time: "+str(completed-started)
-    #     #results = cur.fetchall()
-    #     #for line in results:
-    #     #    print line
-    #
-    #
-    # cur.close()
-    # conn.close()
+
 
 
 def getGpadminCreds():
@@ -407,7 +322,7 @@ def main(args):
         password = getGpadminCreds()
         database = getDatabase(args.hawqMaster,username,password)
         dbLogger.info( "HAWQ Testing")
-        createTables(args.hawqMaster,database,username,password)
+        #createTables(args.hawqMaster,database,username,password)
         createPXFTables(args.hawqMaster,database,username,password,args.scale,args.base,args.namenode)
         #loadHawqTables(args.hawqMaster,username,password)
     elif (args.subparser_name =="gen"):
