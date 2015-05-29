@@ -112,7 +112,7 @@ def dsdgenPrepare(host,username,password):
 
 
 def generateData(scale,base,namenode ):
-    print "GENERATE DATA"
+    print "Data Generation"
 
     if (Hadoop.ls(base))[0] == -1:
         result = Hadoop.mkdir(base)
@@ -120,9 +120,10 @@ def generateData(scale,base,namenode ):
             print result[1]
             exit()
     else:
-        print "Base Directory already exists"
+        print "Base Directory already exists.  Please change and rerun"
         exit()
     for file in glob.glob("target/*.jar"):
+        print file
         jarFile = file
     buildGen()
     os.chdir(workingDir+"/tpcds-gen")
