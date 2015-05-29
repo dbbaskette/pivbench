@@ -324,8 +324,9 @@ def cliParse():
                                required=False)
     parser_load.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=False)
-    parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
-                               required=True)
+    # Add HIVE Support Later
+    #parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
+    #                          required=True)
     parser_gen.add_argument("--scale", dest='scale', action="store", help="Scale:  30000=30TB",
                                required=True)
     parser_gen.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
@@ -389,9 +390,9 @@ def main(args):
         password = getGpadminCreds()
         print password
         dbLogger.info( "HAWQ Testing")
-        createTables(args.hawqMaster,username,password)
-        createPXFTables(args.hawqMaster,username,password,args.scale,args.base)
-        loadHawqTables(args.hawqMaster,username,password)
+        #createTables(args.hawqMaster,username,password)
+        #createPXFTables(args.hawqMaster,username,password,args.scale,args.base)
+        #loadHawqTables(args.hawqMaster,username,password)
     elif (args.subparser_name =="gen"):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):
