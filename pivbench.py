@@ -153,7 +153,7 @@ def createTables(master,database,username,password):
 def createPXFTables(master,database,username,password,scale,base,namenode):
 
     dbLogger.info( "---------------------------------")
-    dbLogger.info( "Creating HAWQ Internal Tables")
+    dbLogger.info( "Creating HAWQ PXF External Tables")
     dbLogger.info( "---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     tableList = glob.glob('./hawq-ddl/pxf/*.sql')
@@ -257,23 +257,24 @@ def cliParse():
 
 
 
-def loadHawqTables(ipAddress,username,password):
+def loadHawqTables(master,username,password,database):
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Load HAWQ Internal Tables")
     dbLogger.info( "---------------------------------")
 
-    conn = psycopg2.connect(database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-    tables = glob.glob('./hawq-ddl/load/*.sql')
-    cur = conn.cursor()
-    for table in tables:
-        ddlFile = open(table,"r")
-        ddlString = ddlFile.read()
-        dbLogger.info( "Loading HAWQ Table: "+table)
-        cur.execute(ddlString)
-        conn.commit()
 
-    cur.close()
-    conn.close()
+    hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    loadList = glob.glob('./hawq-ddl/load/*.sql')
+
+    with queries.Session(hawqURI) as session:
+        for load in loadList:
+            ddlFile = open(load,"r")
+            tableName = ((load.split("/")[3]).split(".")[0])[:5]
+            print "Loading: "+tableName
+            loadDDL = ddlFile.read()
+            result = session.query(loadDDL)
+
+
 
 
 def analyzeHawqTables(ipAddress,username,password):
@@ -323,8 +324,8 @@ def main(args):
         database = getDatabase(args.hawqMaster,username,password)
         dbLogger.info( "HAWQ Testing")
         #createTables(args.hawqMaster,database,username,password)
-        createPXFTables(args.hawqMaster,database,username,password,args.scale,args.base,args.namenode)
-        #loadHawqTables(args.hawqMaster,username,password)
+        #createPXFTables(args.hawqMaster,database,username,password,args.scale,args.base,args.namenode)
+        loadHawqTables(args.hawqMaster,username,password,database)
     elif (args.subparser_name =="gen"):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):

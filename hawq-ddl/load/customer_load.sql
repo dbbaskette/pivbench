@@ -1,3 +1,3 @@
 INSERT INTO customer
 SELECT *
-FROM ext_customer;
+FROM customer_pxf;

@@ -1,3 +1,3 @@
 INSERT INTO promotion
 SELECT *
-FROM ext_promotion;
+FROM promotion_pxf;

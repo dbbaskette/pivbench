@@ -1,3 +1,3 @@
 INSERT INTO catalog_page
 SELECT *
-FROM ext_catalog_page;
+FROM catalog_page_pxf;

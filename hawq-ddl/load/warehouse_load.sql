@@ -1,4 +1,4 @@
 
 INSERT INTO warehouse
 SELECT *
-FROM ext_warehouse;
+FROM warehouse_pxf;

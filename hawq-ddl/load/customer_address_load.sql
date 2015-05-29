@@ -1,4 +1,4 @@
 
 INSERT INTO customer_address
 SELECT *
-FROM ext_customer_address;
+FROM customer_address_pxf;

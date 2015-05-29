@@ -1,3 +1,3 @@
 INSERT INTO customer_demographics
 SELECT *
-FROM ext_customer_demographics;
+FROM customer_demographics_pxf;

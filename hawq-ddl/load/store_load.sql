@@ -1,3 +1,3 @@
 INSERT INTO store
 SELECT *
-FROM ext_store;
+FROM store_pxf_pxf;

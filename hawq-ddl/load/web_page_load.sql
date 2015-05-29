@@ -1,3 +1,3 @@
 INSERT INTO web_page
 SELECT *
-FROM ext_web_page;
+FROM web_page_pxf;

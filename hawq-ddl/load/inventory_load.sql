@@ -1,3 +1,3 @@
 INSERT INTO inventory_nopart
 SELECT *
-FROM ext_inventory;
+FROM inventory_pxf;

@@ -1,4 +1,4 @@
 INSERT INTO household_demographics
 SELECT *
-FROM ext_household_demographics;
+FROM household_demographics_pxf;
 

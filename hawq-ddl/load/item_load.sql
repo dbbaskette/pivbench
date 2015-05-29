@@ -1,3 +1,3 @@
 INSERT INTO item
 SELECT *
-FROM ext_item;
+FROM item_pxf;
