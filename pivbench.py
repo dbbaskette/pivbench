@@ -122,11 +122,12 @@ def generateData(scale,base,namenode ):
     else:
         print "Base Directory already exists.  Please change and rerun"
         exit()
+
+    os.chdir(workingDir+"/tpcds-gen")
     for file in glob.glob("target/*.jar"):
         print file
         jarFile = file
     buildGen()
-    os.chdir(workingDir+"/tpcds-gen")
     print "Data Generation MapRed Job Starting"
     result = Hadoop.run(jarFile,scale,base)
     print "Data Generation MapRed Job Complete"
