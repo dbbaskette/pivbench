@@ -13,8 +13,8 @@ from psycopg2.extras import LoggingConnection
 from psycopg2.extras import LoggingCursor
 import queries
 import wget
-from sh import make
-
+import sh
+import getpass
 from utils import ssh, PackageManager,Hadoop
 
 
@@ -71,8 +71,8 @@ def buildGen():
 
     os.chdir(os.getcwd()+"/tpcds-gen")
     print "Building Generator...."
-    make("clean")
-    make()
+    sh.make("clean")
+    sh.make()
     print "Build Complete"
 
 
@@ -126,7 +126,6 @@ def generateData(scale,base,namenode ):
     os.chdir(workingDir+"/tpcds-gen")
 
     for file in glob.glob("target/*.jar"):
-        print file
         jarFile = file
 
     print "Data Generation MapRed Job Starting"
@@ -298,27 +297,32 @@ def executeQueries(ipAddress,username,password,queryNum,hostsFile):
     # conn.close()
 
 
+def getGpadminCreds():
+    gpPassword = getpass.getpass("Password for gpadmin:")
+    return gpPassword
+
+
 def cliParse():
     VALID_ACTION = ["load","gen","query"]
     parser = argparse.ArgumentParser(description='Pivotal HAWQ TPC-DS Loader')
     subparsers = parser.add_subparsers(help='sub-command help', dest="subparser_name")
     parser_load = subparsers.add_parser("load", help="Load data into HAWQ")
-    parser_gen = subparsers.add_parser("gen", help="Build Data Generator")
+    parser_gen = subparsers.add_parser("gen", help="Build Data Generator and Generate RAW Data into HDFS")
 
     parser_query = subparsers.add_parser("query", help="Query the Database")
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
                                required=True)
-    parser_query.add_argument("--master", dest='master', action="store", help="HAWQ Master",
+    parser_query.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_query.add_argument("--hosts", dest='hostsFile', action="store", help="List of Segment Hosts",
                                required=True)
     parser_load.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
-    parser_load.add_argument("--size", dest='size', action="store",
-                               help="Benchmark Size", required=True)
+    parser_load.add_argument("--scale", dest='scale', action="store",
+                               help="Scale:  30000=30TB", required=True)
     parser_load.add_argument("--parquet", dest='format', action="store", help="Store as Parquet Formatted",
                                required=False)
-    parser_load.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
+    parser_load.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=False)
     parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
                                required=True)
@@ -329,16 +333,9 @@ def cliParse():
     parser_gen.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
 
-
     args = parser.parse_args()
-    if (args.subparser_name == "load"):
-        main(args)
-    elif (args.subparser_name =="gen"):
-        logging.info( "test")
-        generateData(args.scale,args.base,args.namenode)
-    elif (args.subparser_name =="query"):
-        logging.info( "Query")
-        executeQueries(args.master,"gpadmin","gpadmin",args.queryNum,args.hostsFile)
+    main(args)
+
 
 
 def loadHawqTables(ipAddress,username,password):
@@ -385,18 +382,24 @@ def main(args):
 
    
     username = "gpadmin"
-    password = "gpadmin"
-    if (args.engine=="hive"):
-        dbLogger.info( "HIVE Testing")
-        print " "
-    elif (args.engine=="hawq"):
-        dbLogger.info( "HAWQ Testing")
-        #generateData(args.namenode,args.size,args.base)
-        #createExternalTables(args.namenode,username,password)
 
-        createTables(args.namenode,username,password)
-        createPXFTables(args.namenode,username,password,args.size,args.base)
-        loadHawqTables(args.namenode,username,password)
+
+
+    if (args.subparser_name == "load"):
+        password = getGpadminCreds()
+        print password
+        dbLogger.info( "HAWQ Testing")
+        createTables(args.hawqMaster,username,password)
+        createPXFTables(args.hawqMaster,username,password,args.scale,args.base)
+        loadHawqTables(args.hawqMaster,username,password)
+    elif (args.subparser_name =="gen"):
+        generateData(args.scale,args.base,args.namenode)
+    elif (args.subparser_name =="query"):
+        logging.info( "Query")
+        executeQueries(args.hawqMaster,"gpadmin","gpadmin",args.queryNum,args.hostsFile)
+
+
+
 
 
 if __name__ == '__main__':
