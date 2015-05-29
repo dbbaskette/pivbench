@@ -305,13 +305,23 @@ def analyzeHawqTables(master,database,username,password):
     with queries.Session(hawqURI) as session:
         for table in dimensionTables:
             ddlString = "analyze "+table
-            print ddlString
+            startTime = time.time()
+            print "Start "+ddlString+": "+str(startTime)
             result = session.query(ddlString)
+            stopTime = time.time()
+            print "Completed "+ddlString+": "+str(stopTime)
+            print "Elapsed Time: "+str(stopTime - startTime)
+            print "----------------------------------------"
+
         for table in factTables:
             ddlString = "analyze "+table
-            print ddlString
+            startTime = time.time()
+            print "Start "+ddlString+": "+str(startTime)
             result = session.query(ddlString)
-
+            stopTime = time.time()
+            print "Completed "+ddlString+": "+str(stopTime)
+            print "Elapsed Time: "+str(stopTime - startTime)
+            print "----------------------------------------"
 
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
