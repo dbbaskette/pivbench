@@ -387,8 +387,8 @@ def main(args):
 
 
     if (args.subparser_name == "load"):
+        print '\n*************************'
         password = getGpadminCreds()
-        print password
         dbLogger.info( "HAWQ Testing")
         #createTables(args.hawqMaster,username,password)
         #createPXFTables(args.hawqMaster,username,password,args.scale,args.base)
