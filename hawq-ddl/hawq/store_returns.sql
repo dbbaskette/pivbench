@@ -24,6 +24,6 @@ create table store_returns
     sr_net_loss               decimal(7,2)
 ) distributed by (sr_item_sk, sr_ticket_number)
 partition by range(sr_returned_date_sk)
-(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (30),
+(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (7),
 default partition outliers
 );

@@ -2,6 +2,6 @@ DROP EXTERNAL TABLE IF EXISTS reason_pxf;
 CREATE EXTERNAL TABLE reason_pxf
 (
  like reason
-) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SIZE/reason?profile=HdfsTextSimple')
+) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SCALE/reason?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1'
 SEGMENT REJECT LIMIT 1 PERCENT;

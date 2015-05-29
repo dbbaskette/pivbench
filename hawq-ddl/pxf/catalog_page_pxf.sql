@@ -2,6 +2,6 @@ DROP EXTERNAL TABLE IF EXISTS catalog_page_pxf;
 CREATE EXTERNAL TABLE catalog_page_pxf
 (
   like catalog_page
-) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SIZE/catalog_page?profile=HdfsTextSimple')
+) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SCALE/catalog_page?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1'
 SEGMENT REJECT LIMIT 1 PERCENT;

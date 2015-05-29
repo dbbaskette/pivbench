@@ -26,6 +26,6 @@ create table store_sales
     ss_net_profit             decimal(7,2)
 ) distributed by (ss_item_sk, ss_ticket_number)
 partition by range(ss_sold_date_sk)
-(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (30),
+(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (7),
 default partition outliers
 );

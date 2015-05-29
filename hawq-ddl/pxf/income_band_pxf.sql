@@ -2,6 +2,6 @@ DROP EXTERNAL TABLE IF EXISTS income_band_pxf;
 CREATE EXTERNAL TABLE income_band_pxf
 (
   like income_band
-) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SIZE/income_band?profile=HdfsTextSimple')
+) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SCALE/income_band?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1'
 SEGMENT REJECT LIMIT 1 PERCENT;

@@ -2,6 +2,6 @@ DROP EXTERNAL TABLE IF EXISTS call_center_pxf;
 CREATE EXTERNAL TABLE call_center_pxf
 (
    like call_center
-)LOCATION ('pxf://$NAMENODE:50070/$BASE/$SIZE/call_center?profile=HdfsTextSimple')
+)LOCATION ('pxf://$NAMENODE:50070/$BASE/$SCALE/call_center?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1'
 SEGMENT REJECT LIMIT 1 PERCENT;

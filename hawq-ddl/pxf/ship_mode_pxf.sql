@@ -2,6 +2,6 @@ DROP EXTERNAL TABLE IF EXISTS ship_mode_pxf;
 CREATE EXTERNAL TABLE ship_mode_pxf
 (
    like ship_mode
-) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SIZE/ship_mode?profile=HdfsTextSimple')
+) LOCATION ('pxf://$NAMENODE:50070/$BASE/$SCALE/ship_mode?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1'
 SEGMENT REJECT LIMIT 1 PERCENT;

@@ -3,6 +3,6 @@ CREATE EXTERNAL TABLE item_pxf
 (
    like item
 
-)LOCATION ('pxf://$NAMENODE:50070/$BASE/$SIZE/item?profile=HdfsTextSimple')
+)LOCATION ('pxf://$NAMENODE:50070/$BASE/$SCALE/item?profile=HdfsTextSimple')
 FORMAT 'TEXT' (DELIMITER '|' NULL E'' FILL MISSING FIELDS) ENCODING 'latin1'
 SEGMENT REJECT LIMIT 1 PERCENT;

@@ -194,43 +194,44 @@ def generateData(scale,base,namenode ):
 #     conn.close()
 
 
-def createTables(ipAddress,username,password):
+def createTables(master,database,username,password):
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Creating HAWQ Internal Tables")
     dbLogger.info( "---------------------------------")
-    conn = psycopg2.connect(database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-    tables = glob.glob('./hawq-ddl/hawq/*.sql')
-    cur = conn.cursor()
-    for table in tables:
-        ddlFile = open(table,"r")
-        ddlString = ddlFile.read()
-        dbLogger.info( "Creating HAWQ Table: "+table)
-        cur.execute(ddlString)
-        conn.commit()
+    hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    tableList = glob.glob('./hawq-ddl/hawq/*.sql')
 
-    cur.close()
-    conn.close()
+    with queries.Session(hawqURI) as session:
+        for table in tableList:
+            ddlFile = open(table,"r")
+            tableName = (table.split("/")[3]).split(".")[0]
+            print "Creating Table: "+tableName
+            tableDDL = ddlFile.read()
+            result = session.query(tableDDL)
 
-def createPXFTables(ipAddress,username,password,size,baseDir):
 
-    # build to get all sql files in directory
+
+def createPXFTables(master,database,username,password,base,scale,namenode):
+
     dbLogger.info( "---------------------------------")
-    dbLogger.info( "Creating PXF Tables for Data Loading")
+    dbLogger.info( "Creating HAWQ Internal Tables")
     dbLogger.info( "---------------------------------")
-    conn = psycopg2.connect(database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-    cur = conn.cursor()
-    tables = glob.glob('./hawq-ddl/pxf/*.sql')
-    for table in tables:
-        ddlFile = open(table,"r")
-        dbLogger.info( "Creating PXF Table: "+table)
-        ddlString = ddlFile.read()
-        ddlString = ddlString.replace("$NAMENODE",ipAddress)
-        ddlString = ddlString.replace("$SIZE",size)
-        ddlString = ddlString.replace("$BASE",baseDir)
-        cur.execute(ddlString)
-        conn.commit()
-    cur.close()
-    conn.close()
+    hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    tableList = glob.glob('./hawq-ddl/pxf/*.sql')
+
+    with queries.Session(hawqURI) as session:
+        for table in tableList:
+            ddlFile = open(table,"r")
+            tableName = (table.split("/")[3]).split(".")[0]
+            print "Creating PXF External Table: "+tableName
+            tableDDL = ddlFile.read()
+            tableDDL = tableDDL.replace("$NAMENODE",namenode)
+            tableDDL = tableDDL.replace("$SCALE",scale)
+            tableDDL = tableDDL.replace("$BASE",base)
+            result = session.query(tableDDL)
+
+
+
 
 
 def clearBuffers(hostsFile):
@@ -323,7 +324,9 @@ def cliParse():
     parser_load.add_argument("--parquet", dest='format', action="store", help="Store as Parquet Formatted",
                                required=False)
     parser_load.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
-                               required=False)
+                               required=True)
+    parser_load.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
+                               required=True)
     # Add HIVE Support Later
     #parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
     #                          required=True)
@@ -379,6 +382,19 @@ def analyzeHawqTables(ipAddress,username,password):
     conn.close()
 
 
+def getDatabase(master,username,password):
+    hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
+    try:
+        dbName = raw_input("Please Enter a Name for the HAWQ TPC-DS Database:")
+        with queries.Session(hawqURI) as session:
+            result = session.query("create database "+dbName)
+    except psycopg2.ProgrammingError as e:
+        print "Database already exists. It will be used for Data Loading"
+    return dbName
+
+
+
+
 def main(args):
 
    
@@ -387,11 +403,12 @@ def main(args):
 
 
     if (args.subparser_name == "load"):
-        print '\n*************************'
+        print '\n\n\n'
         password = getGpadminCreds()
+        database = getDatabase(args.hawqMaster,username,password)
         dbLogger.info( "HAWQ Testing")
-        #createTables(args.hawqMaster,username,password)
-        #createPXFTables(args.hawqMaster,username,password,args.scale,args.base)
+        createTables(args.hawqMaster,database,username,password)
+        createPXFTables(args.hawqMaster,database,username,password,args.scale,args.base,args.namenode)
         #loadHawqTables(args.hawqMaster,username,password)
     elif (args.subparser_name =="gen"):
         generateData(args.scale,args.base,args.namenode)
