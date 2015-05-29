@@ -222,12 +222,14 @@ def getGpadminCreds(master):
 
 
 def cliParse():
-    VALID_ACTION = ["load","gen","query","part"]
+    VALID_ACTION = ["load","gen","query","part","analyze"]
     parser = argparse.ArgumentParser(description='Pivotal HAWQ TPC-DS Loader')
     subparsers = parser.add_subparsers(help='sub-command help', dest="subparser_name")
     parser_load = subparsers.add_parser("load", help="Load data into HAWQ")
     parser_gen = subparsers.add_parser("gen", help="Build Data Generator and Generate RAW Data into HDFS")
     parser_part = subparsers.add_parser("part", help="Partition the Fact Tables")
+    parser_analyze = subparsers.add_parser("analyze", help="Analyze All Tables")
+
 
     parser_query = subparsers.add_parser("query", help="Query the Database")
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
@@ -266,7 +268,10 @@ def cliParse():
                                required=True)
     parser_part.add_argument("--db", dest='database', action="store", help="Database with Tables",
                                required=True)
-
+    parser_analyze.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
+                               required=True)
+    parser_analyze.add_argument("--db", dest='database', action="store", help="Database with Tables",
+                               required=True)
     args = parser.parse_args()
     main(args)
 
@@ -294,25 +299,13 @@ def loadHawqTables(master,username,password,database):
 
 
 
-def analyzeHawqTables(ipAddress,username,password):
+def analyzeHawqTables(master,database,username,password):
     dbLogger.info( ("Loading Hawq Internal Tables"))
-    logfile = open('db.log', 'a')
-
-    conn = psycopg2.connect(connection_factory=LoggingConnection,database="tpcds",host=ipAddress,user=username,password=password,port="5432")
-
-
-    conn.initialize(logfile)
-    cur = conn.cursor(cursor_factory=LoggingCursor)
-
-    try:
-        cur.execute( open("hawq-analyze.sql", "r").read())
-        conn.commit()
-    except psycopg2.Error as e:
-        dbLogger.info( e.pgerror)
-        print " "
-
-    cur.close()
-    conn.close()
+    hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    with queries.Session(hawqURI) as session:
+        ddlFile = open("./hawq-ddl/util/analyze.sql","r")
+        analyzeDDL = ddlFile.read()
+        result = session.query(analyzeDDL)
 
 
 def getDatabase(master,username,password):
@@ -349,6 +342,7 @@ def partitionTables(master,parts,username,password,database):
             result = session.query(loadDDL)
 
 
+
 def main(args):
 
    
@@ -371,9 +365,13 @@ def main(args):
         password = getGpadminCreds(args.hawqMaster)
         executeQueries(args.hawqMaster,args.database,username,password,args.queryNum,args.hostsFile)
     elif (args.subparser_name=="part"):
-        print '\n\n\n'
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
+    elif (args.subparser_name=="analyze"):
+        password = getGpadminCreds(args.hawqMaster)
+        analyzeHawqTables(args.hawqMaster,args.database,username,password)
+
+
 
 
 
