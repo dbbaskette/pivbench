@@ -124,10 +124,11 @@ def generateData(scale,base,namenode ):
         exit()
 
     os.chdir(workingDir+"/tpcds-gen")
+    buildGen()
     for file in glob.glob("target/*.jar"):
         print file
         jarFile = file
-    buildGen()
+
     print "Data Generation MapRed Job Starting"
     result = Hadoop.run(jarFile,scale,base)
     print "Data Generation MapRed Job Complete"
