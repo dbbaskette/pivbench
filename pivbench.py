@@ -114,19 +114,21 @@ def dsdgenPrepare(host,username,password):
 def generateData(scale,base,namenode ):
     print "GENERATE DATA"
     buildGen()
-    result = Hadoop.mkdir(base)
     os.chdir(workingDir+"/tpcds-gen")
-    #if result[0] < 0:
-    #    print result[1]
-    #    exit()
-    print os.getcwd()
+    Hadoop.ls(base)
+    if (Hadoop.ls(base))[0] < 0:
+        result = Hadoop.mkdir(base)
+        if result[0] < 0:
+            print result[1]
+            exit()
     for file in glob.glob("target/*.jar"):
         jarFile = file
 
+    print "Data Generation MapRed Job Starting"
     result = Hadoop.run(jarFile,scale,base)
-    print result
+    print "Data Generation MapRed Job Complete"
+    print "Changing Replication Factor of RawData to 2"
     result = Hadoop.setrep(2,base)
-    print result
 
 
 # Create base directory or exit if it exists
