@@ -190,9 +190,8 @@ def executeQueries(master,database,username,password,queryNum,hostsFile):
     queryList=[]
     if int(queryNum) > 0:
         dbLogger.info("Running Query %s",queryNum)
-        if int(queryNum < 10):
-            queryNum = "0"+str(queryNum)
-            print queryNum
+        if int(queryNum) < 10:
+            queryNum = "0"+queryNum
         queryList.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
     else:
         dbLogger.info("Running all Queries")
