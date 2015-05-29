@@ -212,8 +212,15 @@ def executeQueries(master,database,username,password,queryNum,hostsFile):
 
 
 
-def getGpadminCreds():
+def getGpadminCreds(master):
     gpPassword = getpass.getpass("Password for gpadmin:")
+    print gpPassword
+    # verify login
+    hawqURI=queries.uri(master, 5432, dbname="gpadmin", user="gpadmin", password=gpPassword)
+    with queries.Session(hawqURI) as session:
+        result = session.query("create database test97d99")
+
+        print "sessio"
     return gpPassword
 
 
@@ -354,7 +361,7 @@ def main(args):
 
     if (args.subparser_name == "load"):
         print '\n\n\n'
-        password = getGpadminCreds()
+        password = getGpadminCreds(args.hawqMaster)
         dbLogger.info( "HAWQ Testing")
         createTables(args.hawqMaster,args.database,username,password)
         createPXFTables(args.hawqMaster,args.database,username,password,args.scale,args.base,args.namenode)
@@ -364,13 +371,11 @@ def main(args):
     elif (args.subparser_name =="query"):
         logging.info( "Query")
         print '\n\n\n'
-        password = getGpadminCreds()
-        #database = getDatabase(args.hawqMaster,username,password)
+        password = getGpadminCreds(args.hawqMaster)
         executeQueries(args.hawqMaster,args.database,username,password,args.queryNum,args.hostsFile)
     elif (args.subparser_name=="part"):
         print '\n\n\n'
-        password = getGpadminCreds()
-        #database = getDatabase(args.hawqMaster,username,password)
+        password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
 
 
