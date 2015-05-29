@@ -355,10 +355,9 @@ def main(args):
     if (args.subparser_name == "load"):
         print '\n\n\n'
         password = getGpadminCreds()
-        #database = getDatabase(args.hawqMaster,username,password)
         dbLogger.info( "HAWQ Testing")
-        #createTables(args.hawqMaster,database,username,password)
-        #createPXFTables(args.hawqMaster,database,username,password,args.scale,args.base,args.namenode)
+        createTables(args.hawqMaster,args.database,username,password)
+        createPXFTables(args.hawqMaster,args.database,username,password,args.scale,args.base,args.namenode)
         loadHawqTables(args.hawqMaster,username,password,args.database)
     elif (args.subparser_name =="gen"):
         generateData(args.scale,args.base,args.namenode)
