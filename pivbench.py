@@ -149,7 +149,6 @@ def createTables(master,database,username,password):
             result = session.query(tableDDL)
 
 
-
 def createPXFTables(master,database,username,password,scale,base,namenode):
 
     dbLogger.info( "---------------------------------")
