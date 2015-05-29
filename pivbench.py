@@ -113,8 +113,8 @@ def dsdgenPrepare(host,username,password):
 
 def generateData(scale,base,namenode ):
     print "GENERATE DATA"
-    #buildGen()
-    #result = Hadoop.mkdir(base)
+    buildGen()
+    result = Hadoop.mkdir(base)
     os.chdir(workingDir+"/tpcds-gen")
     #if result[0] < 0:
     #    print result[1]
