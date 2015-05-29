@@ -216,11 +216,9 @@ def getGpadminCreds(master):
     gpPassword = getpass.getpass("Password for gpadmin:")
     print gpPassword
     # verify login
-    hawqURI=queries.uri(master, 5432, dbname="gpadmin", user="gpadmin", password=gpPassword)
-    with queries.Session(hawqURI) as session:
-        result = session.query("create database test97d99")
+    #hawqURI=queries.uri(master, 5432, dbname="gpadmin", user="gpadmin", password=gpPassword)
+    #with queries.Session(hawqURI) as session:
 
-        print "sessio"
     return gpPassword
 
 
