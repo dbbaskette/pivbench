@@ -23,7 +23,7 @@ def run(jarFile,scale,base):
 
 def setrep(repFactor,dirName):
     try:
-        return (0,sh.hadoop("-setrep","-R",repFactor,dirName))
+        return (0,sh.hadoop("fs","-setrep","-R",repFactor,dirName))
     except sh.ErrorReturnCode as e:
         print e
         return (-1,e.stderr)
