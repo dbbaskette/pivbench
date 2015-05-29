@@ -182,12 +182,11 @@ def clearBuffers(hostsFile):
         ssh.exec_command2(host.rstrip(),"root","password","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
 
 
-def executeQueries(ipAddress,username,password,queryNum,hostsFile):
-    print "Create External Tables"
+def executeQueries(master,database,username,password,queryNum,hostsFile):
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Executing HAWQ Queries")
     dbLogger.info( "---------------------------------")
-    hawqURI=queries.uri("10.103.42.155", port=5432, dbname='tpcds', user=username, password=password)
+    hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     queryList=[]
     if int(queryNum) > 0:
         dbLogger.info("Running Query %s",queryNum)
@@ -313,7 +312,7 @@ def getDatabase(master,username,password):
         with queries.Session(hawqURI) as session:
             result = session.query("create database "+dbName)
     except psycopg2.ProgrammingError as e:
-        print "Database already exists. It will be used for Data Loading"
+        print "Database already exists. "
     return dbName
 
 def partitionTables(master,parts,username,password,database):
@@ -362,7 +361,7 @@ def main(args):
         print '\n\n\n'
         password = getGpadminCreds()
         database = getDatabase(args.hawqMaster,username,password)
-        executeQueries(args.hawqMaster,username,password,args.queryNum,args.hostsFile)
+        executeQueries(args.hawqMaster,database,username,password,args.queryNum,args.hostsFile)
     elif (args.subparser_name=="part"):
         print '\n\n\n'
         password = getGpadminCreds()
