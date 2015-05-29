@@ -116,11 +116,14 @@ def generateData(scale,base,namenode ):
     buildGen()
     os.chdir(workingDir+"/tpcds-gen")
     Hadoop.ls(base)
-    if (Hadoop.ls(base))[0] < 0:
+    if (Hadoop.ls(base))[0] == 0:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
             print result[1]
             exit()
+    else:
+        print "Base Directory already exists"
+        exit()
     for file in glob.glob("target/*.jar"):
         jarFile = file
 
