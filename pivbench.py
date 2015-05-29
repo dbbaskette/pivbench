@@ -113,9 +113,8 @@ def dsdgenPrepare(host,username,password):
 
 def generateData(scale,base,namenode ):
     print "GENERATE DATA"
-    buildGen()
     os.chdir(workingDir+"/tpcds-gen")
-    Hadoop.ls(base)
+    print Hadoop.ls(base)[0]
     if (Hadoop.ls(base))[0] == 0:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
@@ -126,6 +125,7 @@ def generateData(scale,base,namenode ):
         exit()
     for file in glob.glob("target/*.jar"):
         jarFile = file
+    buildGen()
 
     print "Data Generation MapRed Job Starting"
     result = Hadoop.run(jarFile,scale,base)
