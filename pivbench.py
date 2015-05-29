@@ -228,9 +228,10 @@ def cliParse():
     parser_gen = subparsers.add_parser("gen", help="Build Data Generator and Generate RAW Data into HDFS")
     parser_part = subparsers.add_parser("part", help="Partition the Fact Tables")
     parser_analyze = subparsers.add_parser("analyze", help="Analyze All Tables")
-
-
+    parser_clean = subparsers.add_parser("clean", help="Clean Up Data")
     parser_query = subparsers.add_parser("query", help="Query the Database")
+
+
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
                                required=True)
     parser_query.add_argument("--db", dest='database', action="store", help="Database to Query",
@@ -271,6 +272,20 @@ def cliParse():
                                required=True)
     parser_analyze.add_argument("--db", dest='database', action="store", help="Database with Tables",
                                required=True)
+
+    parser_clean.add_argument("--scale", dest='scale', action="store", help="Scale:  30000=30TB",
+                               required=True)
+    parser_clean.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
+                               required=True)
+    parser_clean.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
+                               required=True)
+    parser_clean.add_argument("--raw", dest='raw', action="store", help="Clean up Raw Data",
+                               required=True)
+    parser_clean.add_argument("--", dest='base', action="store", help="Base HDFS Directory for Raw Data",
+                               required=True)
+
+    #
+
     args = parser.parse_args()
     main(args)
 
@@ -293,7 +308,13 @@ def loadHawqTables(master,username,password,database):
             tableName = ((load.split("/")[3]).split(".")[0])[:-5]
             print "Loading: "+tableName
             loadDDL = ddlFile.read()
+            startTime = datetime.datetime.now()
+            print "Start Load of     "+tableName +": "+str(startTime)
             result = session.query(loadDDL)
+            stopTime = datetime.datetime.now()
+            print "Completed Load of "+tableName+": "+str(stopTime)
+            print "Elapsed Time: "+str(stopTime - startTime)
+            print "----------------------------------------"
 
 
 
