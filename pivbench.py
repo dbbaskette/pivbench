@@ -284,7 +284,7 @@ def cliParse():
     parser_clean.add_argument("--", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
 
-    #
+    #  FINISH WORK ON CLEAN
 
     args = parser.parse_args()
     main(args)
