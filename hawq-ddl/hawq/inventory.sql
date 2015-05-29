@@ -1,0 +1,12 @@
+drop table if exists inventory;
+create table inventory
+(
+    inv_date_sk               integer               not null,
+    inv_item_sk               integer               not null,
+    inv_warehouse_sk          integer               not null,
+    inv_quantity_on_hand      integer
+) distributed by (inv_date_sk, inv_item_sk, inv_warehouse_sk)
+partition by range(inv_date_sk)
+(start(2450815) INCLUSIVE end(2453005) INCLUSIVE every (30),
+default partition outliers
+);
