@@ -196,7 +196,8 @@ def executeQueries(master,database,username,password,queryNum,hostsFile):
         queryList.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
     else:
         dbLogger.info("Running all Queries")
-        queryList = glob.glob('./hawq-ddl/queries/*.sql')
+        queryList = sorted(glob.glob('./hawq-ddl/queries/*.sql'))
+
 
     with queries.Session(hawqURI) as session:
         for query in queryList:
