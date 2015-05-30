@@ -230,6 +230,8 @@ def cliParse():
     parser_analyze = subparsers.add_parser("analyze", help="Analyze All Tables")
     parser_clean = subparsers.add_parser("clean", help="Clean Up Data")
     parser_query = subparsers.add_parser("query", help="Query the Database")
+    parser_report = subparsers.add_parser("report", help="Configuration Report")
+
 
 
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
@@ -283,11 +285,18 @@ def cliParse():
                                required=True)
     parser_clean.add_argument("--", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
+    parser_report.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
+                               required=True)
+    parser_report.add_argument("--dir", dest='hdfsDir', action="store", help="HDFS Directory for Reporting",
+                               required=True)
+
 
     #  FINISH WORK ON CLEAN
 
     args = parser.parse_args()
     main(args)
+
+
 
 
 
@@ -377,6 +386,10 @@ def partitionTables(master,parts,username,password,database):
             result = session.query(loadDDL)
 
 
+def capacityReport(namenode,hdfsDir):
+    results = Hadoop.size(hdfsDir)
+    print results[1]
+
 
 def main(args):
 
@@ -405,6 +418,8 @@ def main(args):
     elif (args.subparser_name=="analyze"):
         password = getGpadminCreds(args.hawqMaster)
         analyzeHawqTables(args.hawqMaster,args.database,username,password)
+    elif(args.subparser_name=="report"):
+        capacityReport(args.namenode,args.hdfsDir)
 
 
 

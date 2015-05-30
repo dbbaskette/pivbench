@@ -28,4 +28,11 @@ def setrep(repFactor,dirName):
         print e
         return (-1,e.stderr)
 
+def size(hdfsPath):
+    try:
+        return (0,sh.hadoop("fs","-du","-h",hdfsPath))
+    except sh.ErrorReturnCode as e:
+        print e
+        return (-1,e.stderr)
+
 # cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
