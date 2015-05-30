@@ -174,11 +174,13 @@ def createPXFTables(master,database,username,password,scale,base,namenode):
 
 def clearBuffers(hostsFile):
 
+    #FIX PASSWORD!!!!!
+
     with open(hostsFile,"r") as hostsFileReader:
         hosts = hostsFileReader.readlines()
 
     for host in hosts:
-        ssh.exec_command2(host.rstrip(),"root","password","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
+        ssh.exec_command2(host.rstrip(),"root","changme","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
 
 
 def executeQueries(master,database,username,password,queryNum,hostsFile):
