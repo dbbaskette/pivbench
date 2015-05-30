@@ -331,6 +331,9 @@ def loadHawqTables(master,username,password,database):
 def analyzeHawqTables(master,database,username,password):
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     with queries.Session(hawqURI) as session:
+        dbLogger.info("Analyze Dimension Tables")
+        dbLogger.info( "----------------------------------------")
+
         for table in dimensionTables:
             ddlString = "analyze "+table
             startTime = datetime.datetime.now()
@@ -340,6 +343,8 @@ def analyzeHawqTables(master,database,username,password):
             dbLogger.info("Completed "+ddlString+": "+str(stopTime))
             dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
             dbLogger.info( "----------------------------------------")
+        dbLogger.info("Analyze Fact Tables")
+        dbLogger.info( "----------------------------------------")
 
         for table in factTables:
             ddlString = "analyze "+table
