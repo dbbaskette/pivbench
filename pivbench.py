@@ -343,10 +343,10 @@ def analyzeHawqTables(master,database,username,password):
 
         for table in factTables:
             ddlString = "analyze "+table
-            startTime = time.time()
+            startTime = datetime.datetime.now()
             dbLogger.info( "Start "+ddlString+": "+str(startTime))
             result = session.query(ddlString)
-            stopTime = time.time()
+            startTime = datetime.datetime.now()
             dbLogger.info("Completed "+ddlString+": "+str(stopTime))
             dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
             dbLogger.info( "----------------------------------------")
