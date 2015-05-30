@@ -180,7 +180,7 @@ def clearBuffers(hostsFile):
         hosts = hostsFileReader.readlines()
 
     for host in hosts:
-        ssh.exec_command2(host.rstrip(),"root","changme","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
+        ssh.exec_command2(host.rstrip(),"root","changeme","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
 
 
 def executeQueries(master,database,username,password,queryNum,hostsFile):
