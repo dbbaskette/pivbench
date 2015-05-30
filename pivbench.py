@@ -329,28 +329,27 @@ def loadHawqTables(master,username,password,database):
 
 
 def analyzeHawqTables(master,database,username,password):
-    dbLogger.info( ("Loading Hawq Internal Tables"))
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     with queries.Session(hawqURI) as session:
         for table in dimensionTables:
             ddlString = "analyze "+table
             startTime = datetime.datetime.now()
-            print "Start "+ddlString+": "+str(startTime)
+            dbLogger.info( "Start "+ddlString+": "+str(startTime))
             result = session.query(ddlString)
             stopTime = datetime.datetime.now()
-            print "Completed "+ddlString+": "+str(stopTime)
-            print "Elapsed Time: "+str(stopTime - startTime)
-            print "----------------------------------------"
+            dbLogger.info("Completed "+ddlString+": "+str(stopTime))
+            dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
+            dbLogger.info( "----------------------------------------")
 
         for table in factTables:
             ddlString = "analyze "+table
             startTime = time.time()
-            print "Start "+ddlString+": "+str(startTime)
+            dbLogger.info( "Start "+ddlString+": "+str(startTime))
             result = session.query(ddlString)
             stopTime = time.time()
-            print "Completed "+ddlString+": "+str(stopTime)
-            print "Elapsed Time: "+str(stopTime - startTime)
-            print "----------------------------------------"
+            dbLogger.info("Completed "+ddlString+": "+str(stopTime))
+            dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
+            dbLogger.info( "----------------------------------------")
 
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
