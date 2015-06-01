@@ -195,6 +195,7 @@ def executeQueries(master,database,username,password,queryList,hostsFile):
         #Loop
         for queryNum in queryList:
             dbLogger.info("Running Query %s",queryNum)
+
             if int(queryNum) < 10:
                 queryNum = "0"+queryNum
             queryLocations.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
@@ -242,13 +243,15 @@ def cliParse():
 
 
     parser_query.add_argument("--num", dest='queryNum', action="store", help="Query Number to Execute (0 for all)",
-                               required=True)
+                               required=False)
     parser_query.add_argument("--db", dest='database', action="store", help="Database to Query",
                                required=True)
     parser_query.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_query.add_argument("--hosts", dest='hostsFile', action="store", help="List of Segment Hosts",
                                required=True)
+    parser_query.add_argument("--set", dest='querySet', action="store", help="File with a QuerySet (CSV)",
+                               required=False)
     parser_load.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
     parser_load.add_argument("--scale", dest='scale', action="store",
@@ -402,6 +405,25 @@ def capacityReport(namenode,hdfsDir):
     print results[1]
 
 
+
+def getQuerySet(setName):
+    try:
+        with open("./querysets/"+setName+".set","r") as querySetFile:
+            querySet = querySetFile.read()
+            queryList = querySet.split(",")
+    except IOError as e:
+        if setName == "all" :
+            queryList=[0]
+        else:
+            print "ERROR: Set Not Found:  Plese use 'all' or a valid name"
+            exit()
+
+
+
+    return queryList
+
+
+
 def main(args):
 
    
@@ -420,9 +442,15 @@ def main(args):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
-        print '\n\n\n'
+        if (args.querySet):
+            queryList = getQuerySet(args.querySet)
+        elif (args.queryNum):
+            queryList = (args.queryNum).split(',')
+        else:
+            print "Either --set <setname> or --num <csv list of queries> is Required"
+            exit()
         password = getGpadminCreds(args.hawqMaster)
-        queryList = (args.queryNum).split(',')
+
 
         executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile)
     elif (args.subparser_name=="part"):
