@@ -183,25 +183,29 @@ def clearBuffers(hostsFile):
         ssh.exec_command2(host.rstrip(),"root","changeme","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
 
 
-def executeQueries(master,database,username,password,queryNum,hostsFile):
+def executeQueries(master,database,username,password,queryList,hostsFile):
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Executing HAWQ Queries")
     dbLogger.info( "---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    queryList=[]
-    if int(queryNum) > 0:
-        dbLogger.info("Running Query %s",queryNum)
-        if int(queryNum) < 10:
-            queryNum = "0"+queryNum
-        queryList.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
+    queryLocations=[]
+
+    if int(int(queryList[0])) <> 0:
+
+        #Loop
+        for queryNum in queryList:
+            dbLogger.info("Running Query %s",queryNum)
+            if int(queryNum) < 10:
+                queryNum = "0"+queryNum
+            queryLocations.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
     else:
         dbLogger.info("Running all Queries")
-        queryList = sorted(glob.glob('./hawq-ddl/queries/*.sql'))
+        queryLocations = sorted(glob.glob('./hawq-ddl/queries/*.sql'))
 
 
     with queries.Session(hawqURI) as session:
-        for query in queryList:
-            clearBuffers(hostsFile)
+        for query in queryLocations:
+            #clearBuffers(hostsFile)
             ddlFile = open(query,"r")
             queryName = (query.split("/")[3]).split(".")[0]
             queryString = ddlFile.read()
@@ -418,7 +422,9 @@ def main(args):
         logging.info( "Query")
         print '\n\n\n'
         password = getGpadminCreds(args.hawqMaster)
-        executeQueries(args.hawqMaster,args.database,username,password,args.queryNum,args.hostsFile)
+        queryList = (args.queryNum).split(',')
+
+        executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile)
     elif (args.subparser_name=="part"):
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
