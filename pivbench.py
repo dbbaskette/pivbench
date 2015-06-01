@@ -9,14 +9,16 @@ from distutils import spawn
 import tarfile
 
 import psycopg2
-from psycopg2.extras import LoggingConnection
-from psycopg2.extras import LoggingCursor
+#from psycopg2.extras import LoggingConnection
+#from psycopg2.extras import LoggingCursor
 import queries
 import wget
 import sh
 import getpass
 from utils import ssh, PackageManager,Hadoop
 import datetime
+from multiprocessing import Process
+
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
@@ -175,12 +177,33 @@ def createPXFTables(master,database,username,password,scale,base,namenode):
 def clearBuffers(hostsFile):
 
     #FIX PASSWORD!!!!!
-
-    with open(hostsFile,"r") as hostsFileReader:
-        hosts = hostsFileReader.readlines()
-
+    threadList = []
+    with open(hostsFile,"r") as hostsReader:
+       hosts = hostsReader.readlines()
     for host in hosts:
-        ssh.exec_command2(host.rstrip(),"root","changeme","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m")
+        p= Process(target=ssh.exec_command2,args=(host.rstrip(),"root","password","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m"),)
+        threadList.append(p)
+
+    for thread in threadList:
+        thread.start()
+    for thread in threadList:
+        thread.join()
+        print thread
+
+    print "Buffers Cleared"
+
+
+# # Make the Pool of workers
+# pool = ThreadPool(4)
+#
+# # Open the urls in their own threads
+# # and return the results
+# results = pool.map(urllib2.urlopen, urls)
+#
+# #close the pool and wait for the work to finish
+# pool.close()
+# pool.join()
+
 
 
 def executeQueries(master,database,username,password,queryList,hostsFile):
@@ -203,10 +226,9 @@ def executeQueries(master,database,username,password,queryList,hostsFile):
         dbLogger.info("Running all Queries")
         queryLocations = sorted(glob.glob('./hawq-ddl/queries/*.sql'))
 
-
     with queries.Session(hawqURI) as session:
         for query in queryLocations:
-            #clearBuffers(hostsFile)
+            clearBuffers(hostsFile)
             ddlFile = open(query,"r")
             queryName = (query.split("/")[3]).split(".")[0]
             queryString = ddlFile.read()

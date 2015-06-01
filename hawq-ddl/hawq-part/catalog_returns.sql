@@ -31,6 +31,7 @@ create table catalog_returns
     cr_net_loss               decimal(7,2)
 ) distributed by (cr_item_sk, cr_order_number)
 partition by range(cr_returned_date_sk)
+
 (start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
 default partition outliers
 );
