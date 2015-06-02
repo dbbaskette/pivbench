@@ -17,7 +17,7 @@ import wget
 import sh
 import paramiko
 
-from utils import ssh, PackageManager, Hadoop
+from utils import ssh, PackageManager, Hadoop, Email
 
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -245,8 +245,10 @@ def getGpadminCreds(master):
 
 def getAdminCreds(hostFile):
     admin=[]
-    admin.append(raw_input("Please Enter a username of an admin user (ex: root):"))
-    admin.append(getpass.getpass("Password for "+admin[0]+" (needed for Buffer Clears):"))
+    username = raw_input("Please Enter a username of an admin user (ex: root):")
+    admin.append(username)
+    password = getpass.getpass("Password for " + username + " (needed for Buffer Clears):")
+    admin.append(password)
 
 
     with open(hostFile,"r") as hostsReader:
@@ -255,7 +257,7 @@ def getAdminCreds(hostFile):
     for host in hosts:
         print "Testing access to "+host
         try:
-            ssh.exec_command2(host.rstrip(),admin[0],admin[1],"touch /.test")
+            ssh.exec_command2(host.rstrip(), username, password, "touch /.test")
         except paramiko.AuthenticationException as e:
             print "Error:  Username/password not correct"
             exit()
@@ -481,18 +483,19 @@ def main(args):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
-        if (args.querySet):
-            queryList = getQuerySet(args.querySet)
-        elif (args.queryNum):
-            queryList = (args.queryNum).split(',')
-        else:
-            print "Either --set <setname> or --num <csv list of queries> is Required"
-            exit()
-        password = getGpadminCreds(args.hawqMaster)
-
-        admin = getAdminCreds(args.hostsFile)
-
-        executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile,admin[0],admin[1])
+        Email.sendEmail("dbbaskette@gmail.com", "This is a PivBench Test Message")
+        # if (args.querySet):
+        # queryList = getQuerySet(args.querySet)
+        # elif (args.queryNum):
+        #     queryList = (args.queryNum).split(',')
+        # else:
+        #     print "Either --set <setname> or --num <csv list of queries> is Required"
+        #     exit()
+        # password = getGpadminCreds(args.hawqMaster)
+        #
+        # admin = getAdminCreds(args.hostsFile)
+        #
+        # executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile,admin[0],admin[1])
     elif (args.subparser_name=="part"):
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
