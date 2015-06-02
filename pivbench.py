@@ -40,7 +40,6 @@ dbLogger.addHandler(dblogHandler)
 dbLogger.setLevel(logging.INFO)
 
 
-
 workingDir = os.getcwd()
 
 # Tables in the TPC-DS schema.
