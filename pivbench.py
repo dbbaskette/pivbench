@@ -422,13 +422,7 @@ def getDatabase(master,username,password):
     return dbName
 
 def partitionTables(master,parts,username,password,database):
-    emailReport = "******************************\n"
-    emailReport.join("**  Re-Partitioning Tables  **\n")
-    emailReport.append("**     Module Starting      **\n")
-    emailReport.append("******************************\n\n")
-    print emailReport
-    statusString = "Partitioning Tables into " + str(parts) + " Partitions each"
-    emailReport.append(statusString)
+    print "Partitioning Tables into " + str(parts) + " Partitions each"
 
 
 
