@@ -199,12 +199,14 @@ def clearBuffers(hostsFile,adminUser,adminPassword):
       #
 
 
-def executeQueries(master,database,username,password,queryList,hostsFile,adminUser,adminPassword):
+def executeQueries(master, database, username, password, queryList, hostsFile, adminUser, adminPassword, email,
+                   emailAddress=""):
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Executing HAWQ Queries")
     dbLogger.info( "---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     queryLocations=[]
+
 
     if int(int(queryList[0])) <> 0:
 
@@ -232,7 +234,8 @@ def executeQueries(master,database,username,password,queryList,hostsFile,adminUs
             results = "Query: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (
             queryName, queryTime, str(result.count()))
             dbLogger.info(results)
-            Email.sendEmail("dbbaskette@gmail.com", results)
+            if (email):
+                Email.sendEmail(emailAddress, results)
 
 
 
@@ -290,6 +293,8 @@ def cliParse():
                                required=True)
     parser_query.add_argument("--set", dest='querySet', action="store", help="File with a QuerySet (CSV)",
                                required=False)
+    parser_query.add_argument("--email", dest='emailAddress', action="store", help="Email Address for Reports",
+                              required=False)
     parser_query.add_argument("--admin", dest='adminUser', action="store", help="User with Admin Prics (root)",
                               required=False, default="root")
     parser_load.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
@@ -417,6 +422,17 @@ def getDatabase(master,username,password):
     return dbName
 
 def partitionTables(master,parts,username,password,database):
+    emailReport = "******************************\n"
+    emailReport.join("**  Re-Partitioning Tables  **\n")
+    emailReport.append("**     Module Starting      **\n")
+    emailReport.append("******************************\n\n")
+    print emailReport
+    statusString = "Partitioning Tables into " + str(parts) + " Partitions each"
+    emailReport.append(statusString)
+
+
+
+
     print "Partitioning Tables into "+str(parts)+" Partitions each"
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     loadList = sorted(glob.glob('./hawq-ddl/load-part/*.sql'))
@@ -492,9 +508,17 @@ def main(args):
         password = getGpadminCreds(args.hawqMaster)
 
         adminPassword = getAdminCreds(args.hostsFile, args.adminUser)
+        email = False
+        if (args.emailAddress):
+            email = True
+            executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
+                           args.adminUser,
+                           adminPassword, email, args.emailAddress)
+        else:
+            executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
+                           args.adminUser,
+                           adminPassword, email, args.emailAddress)
 
-        executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile, args.adminUser,
-                       adminPassword)
     elif (args.subparser_name=="part"):
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
