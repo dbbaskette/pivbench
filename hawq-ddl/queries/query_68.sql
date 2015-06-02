@@ -22,11 +22,11 @@ select  c_last_name
          and store_sales.ss_store_sk = store.s_store_sk  
         and store_sales.ss_hdemo_sk = household_demographics.hd_demo_sk
         and store_sales.ss_addr_sk = customer_address.ca_address_sk
-        and date_dim.d_dom between 1 and 2 
-        and (household_demographics.hd_dep_count = 1 or
-             household_demographics.hd_vehicle_count= -1)
-        and date_dim.d_year in (2000,2000+1,2000+2)
-        and store.s_city in ('Randolph','Oak Ridge')
+        and date_dim.d_dom between 1 and 2
+        and (household_demographics.hd_dep_count = 4 or
+             household_demographics.hd_vehicle_count= 2)
+        and date_dim.d_year in (1998,1998+1,1998+2)
+        and store.s_city in ('Rosedale','Bethlehem')
        group by ss_ticket_number
                ,ss_customer_sk
                ,ss_addr_sk,ca_city) dn

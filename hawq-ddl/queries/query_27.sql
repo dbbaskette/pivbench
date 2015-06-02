@@ -13,8 +13,8 @@ select  i_item_id,
        cd_gender = 'M' and
        cd_marital_status = 'U' and
        cd_education_status = 'Secondary' and
-       d_year = 2000 and
-       s_state in ('FL','MI', 'WA', 'LA', 'TX', 'TX')
+       d_year = 1998 and
+       store.s_state in ('KS','AL', 'MN', 'AL', 'SC', 'VT')
  group by rollup (i_item_id, s_state)
  order by i_item_id
          ,s_state
