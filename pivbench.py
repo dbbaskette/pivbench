@@ -9,6 +9,7 @@ from distutils import spawn
 import tarfile
 
 import psycopg2
+
 #from psycopg2.extras import LoggingConnection
 #from psycopg2.extras import LoggingCursor
 import queries
@@ -140,7 +141,7 @@ def createTables(master,database,username,password):
     dbLogger.info( "Creating HAWQ Internal Tables")
     dbLogger.info( "---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    tableList = glob.glob('./hawq-ddl/hawq/*.sql')
+    tableList = sorted(glob.glob('./hawq-ddl/hawq/*.sql'))
 
     with queries.Session(hawqURI) as session:
         for table in tableList:
@@ -157,7 +158,7 @@ def createPXFTables(master,database,username,password,scale,base,namenode):
     dbLogger.info( "Creating HAWQ PXF External Tables")
     dbLogger.info( "---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    tableList = glob.glob('./hawq-ddl/pxf/*.sql')
+    tableList = sorted(glob.glob('./hawq-ddl/pxf/*.sql'))
 
     with queries.Session(hawqURI) as session:
         for table in tableList:
@@ -251,7 +252,7 @@ def getAdminCreds(hostFile):
 
     with open(hostFile,"r") as hostsReader:
         hosts = hostsReader.readlines()
-   
+
     for host in hosts:
         print "Testing access to "+host
         try:
@@ -356,7 +357,7 @@ def loadHawqTables(master,username,password,database):
 
 
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    loadList = glob.glob('./hawq-ddl/load/*.sql')
+    loadList = sorted(glob.glob('./hawq-ddl/load/*.sql'))
 
 
 
@@ -418,8 +419,8 @@ def getDatabase(master,username,password):
 def partitionTables(master,parts,username,password,database):
     print "Partitioning Tables into "+str(parts)+" Partitions each"
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    loadList = glob.glob('./hawq-ddl/load-part/*.sql')
-    tableList = glob.glob('./hawq-ddl/hawq-part/*.sql')
+    loadList = sorted(glob.glob('./hawq-ddl/load-part/*.sql'))
+    tableList = sorted(glob.glob('./hawq-ddl/hawq-part/*.sql'))
     with queries.Session(hawqURI) as session:
         for table in tableList:
             ddlFile = open(table,"r")
