@@ -7,19 +7,18 @@ import argparse
 import time
 from distutils import spawn
 import tarfile
+import getpass
+import datetime
+from multiprocessing import Process
 
 import psycopg2
-
-#from psycopg2.extras import LoggingConnection
-#from psycopg2.extras import LoggingCursor
 import queries
 import wget
 import sh
-import getpass
-from utils import ssh, PackageManager,Hadoop
-import datetime
-from multiprocessing import Process
 import paramiko
+
+from utils import ssh, PackageManager, Hadoop
+
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 

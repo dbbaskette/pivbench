@@ -20,3 +20,8 @@ The application is broken into functions:
 2015-05-30 11:18:12,482 INFO Query: query_92   Execution Time(s): xxx.xx  Rows Returned: 1
 2015-05-30 11:25:39,422 INFO Query: query_85   Execution Time(s): xxx.xx  Rows Returned: 71
 ```
+
+Pre-Reqs
+--------
+yum -y install python-devel
+yum -y install postgresql-devel
