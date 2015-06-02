@@ -42,7 +42,6 @@ dbLogger.setLevel(logging.INFO)
 
 workingDir = os.getcwd()
 
-
 # Tables in the TPC-DS schema.
 dimensionTables = (
     'date_dim', 'time_dim', 'item', 'customer', 'customer_demographics', 'household_demographics', 'customer_address',
