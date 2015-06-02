@@ -485,19 +485,19 @@ def main(args):
         generateData(args.scale,args.base,args.namenode)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
-        Email.sendEmail("dbbaskette@gmail.com", "This is a PivBench Test Message")
-        # if (args.querySet):
-        # queryList = getQuerySet(args.querySet)
-        # elif (args.queryNum):
-        #     queryList = (args.queryNum).split(',')
-        # else:
-        #     print "Either --set <setname> or --num <csv list of queries> is Required"
-        #     exit()
-        # password = getGpadminCreds(args.hawqMaster)
-        #
-        # admin = getAdminCreds(args.hostsFile)
-        #
-        # executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile,admin[0],admin[1])
+        if (args.querySet):
+            queryList = getQuerySet(args.querySet)
+        elif (args.queryNum):
+            queryList = (args.queryNum).split(',')
+        else:
+            print "Either --set <setname> or --num <csv list of queries> is Required"
+            exit()
+        password = getGpadminCreds(args.hawqMaster)
+
+        admin = getAdminCreds(args.hostsFile)
+
+        executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile, admin[0],
+                       admin[1])
     elif (args.subparser_name=="part"):
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
