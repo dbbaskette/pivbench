@@ -229,8 +229,10 @@ def executeQueries(master,database,username,password,queryList,hostsFile,adminUs
             result = session.query(queryString)
             stopTime = time.time()
             queryTime = stopTime - startTime
-
-            dbLogger.info("Query: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (queryName,queryTime,str(result.count())))
+            results = "Query: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (
+            queryName, queryTime, str(result.count()))
+            dbLogger.info(results)
+            Email.sendEmail("dbbaskette@gmail.com", results)
 
 
 
