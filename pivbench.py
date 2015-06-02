@@ -486,7 +486,7 @@ def partitionTables(master,parts,username,password,database,emailAddress=""):
             loadDDL = ddlFile.read()
 
             result = session.query(loadDDL)
-            createStatus = "Table Created: "+tableName
+            createStatus = "Table Loaded: "+tableName
             uniInfoLog(createStatus,report)
             if emailAddress:
                 Email.sendEmail(emailAddress,createStatus,createStatus)
