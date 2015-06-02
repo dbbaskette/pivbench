@@ -31,14 +31,15 @@ rootLogger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
-DBLOG_FILENAME = 'db.log'
+DBLOG_FILENAME = './logs/db.log'
 dbLogger = logging.getLogger("Database Operation Logging")
 dblogHandler = logging.FileHandler(DBLOG_FILENAME)
 dblogHandler.setFormatter(formatter)
 dbLogger.addHandler(dblogHandler)
 dbLogger.setLevel(logging.INFO)
 
-#
+
+
 
 workingDir = os.getcwd()
 
@@ -77,33 +78,33 @@ def buildGen():
 
 
 
-
-def getSegmentMapping(host):
-    hawqURI=queries.uri("10.103.42.155", port=5432, dbname='tpcds', user='gpadmin', password='gpadmin')
-    with queries.Session(hawqURI) as session:
-        queryString = "select * from gp_segment_configuration where hostname='"+host+"'"
-        result = session.query(queryString)
-        segments=[]
-        for line in result:
-            #print line
-            if line['content']>=0:
-               # print "Host: "+host+"   Seg: gpseg"+str(line['dbid'])
-                segments.append(line['content'])
-        if len(segments)>0:
-            return segments
-    return []
-
-
-def dsdgenPrepare(host,username,password):
-    print "Copying Files to "+host
-    ssh.putFile(host,"./TPCDSVersion1.3.1/dbgen2/dsdgen","root","password")
-    ssh.putFile(host,"./TPCDSVersion1.3.1/dbgen2/tpcds.idx","root","password")
-    ssh.exec_command2(host,"root","password",'chmod +x /tmp/dsdgen')
-
-    ssh.exec_command2(host,"root","password",'chmod +x /tmp/tpcds.idx')
-
-    ssh.exec_command2(host,"root","password",'yum -y install gcc')
-    ssh.exec_command2(host,"root","password",'rm -f /tmp/*.dat')
+#
+# def getSegmentMapping(host):
+#     hawqURI=queries.uri("10.103.42.155", port=5432, dbname='tpcds', user='gpadmin', password='gpadmin')
+#     with queries.Session(hawqURI) as session:
+#         queryString = "select * from gp_segment_configuration where hostname='"+host+"'"
+#         result = session.query(queryString)
+#         segments=[]
+#         for line in result:
+#             #print line
+#             if line['content']>=0:
+#                # print "Host: "+host+"   Seg: gpseg"+str(line['dbid'])
+#                 segments.append(line['content'])
+#         if len(segments)>0:
+#             return segments
+#     return []
+#
+#
+# def dsdgenPrepare(host,username,password):
+#     print "Copying Files to "+host
+#     ssh.putFile(host,"./TPCDSVersion1.3.1/dbgen2/dsdgen","root","password")
+#     ssh.putFile(host,"./TPCDSVersion1.3.1/dbgen2/tpcds.idx","root","password")
+#     ssh.exec_command2(host,"root","password",'chmod +x /tmp/dsdgen')
+#
+#     ssh.exec_command2(host,"root","password",'chmod +x /tmp/tpcds.idx')
+#
+#     ssh.exec_command2(host,"root","password",'yum -y install gcc')
+#     ssh.exec_command2(host,"root","password",'rm -f /tmp/*.dat')
 
 
 
@@ -169,12 +170,8 @@ def createPXFTables(master,database,username,password,scale,base,namenode):
             result = session.query(tableDDL)
 
 
-
-
-
 def clearBuffers(hostsFile,adminUser,adminPassword):
 
-    #FIX PASSWORD!!!!!
     threadList = []
     with open(hostsFile,"r") as hostsReader:
        hosts = hostsReader.readlines()
@@ -190,18 +187,40 @@ def clearBuffers(hostsFile,adminUser,adminPassword):
 
     for thread in threadList:
         thread.join()
-        print thread
 
-    print "Buffers Cleared"
-
-      #
+    return "Buffers Cleared on All Cluster Nodes"
 
 
-def executeQueries(master, database, username, password, queryList, hostsFile, adminUser, adminPassword, email,
+def buildReportLogger(name):
+    reportName = "./logs/"+name+"-"+str(datetime.datetime.now().isoformat('-'))+".log"
+    reportLogger = logging.getLogger("Reporting Logger")
+    reportlogHandler = logging.FileHandler(reportName)
+    reportlogHandler.setFormatter(formatter)
+    reportLogger.addHandler(reportlogHandler)
+    reportLogger.setLevel(logging.INFO)
+    return (reportName,reportLogger)
+
+def uniInfoLog(msg,logger):
+    #for now uses db and user defined
+    dbLogger.info(msg)
+    logger.info(msg)
+
+
+
+
+def executeQueries(master, database, username, password, queryList, hostsFile, adminUser, adminPassword,
                    emailAddress=""):
-    dbLogger.info( "---------------------------------")
-    dbLogger.info( "Executing HAWQ Queries")
-    dbLogger.info( "---------------------------------")
+
+
+
+    loggerInfo  = buildReportLogger("queries")
+    reportName = loggerInfo[0]
+    report = loggerInfo[1]
+    header=[]
+    startString = "Query Execution Phase"
+    uniInfoLog(startString,report)
+    header="Executing HAWQ Queries"
+    uniInfoLog(header,report)
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     queryLocations=[]
 
@@ -210,18 +229,18 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
 
         #Loop
         for queryNum in queryList:
-            dbLogger.info("Running Query %s",queryNum)
+            uniInfoLog("Running Query "+queryNum,report)
 
             if int(queryNum) < 10:
                 queryNum = "0"+queryNum
             queryLocations.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
     else:
-        dbLogger.info("Running all Queries")
+        uniInfoLog("Running all Queries",report)
         queryLocations = sorted(glob.glob('./hawq-ddl/queries/*.sql'))
 
     with queries.Session(hawqURI) as session:
         for query in queryLocations:
-            clearBuffers(hostsFile,adminUser,adminPassword)
+            uniInfoLog(clearBuffers(hostsFile,adminUser,adminPassword),report)
             ddlFile = open(query,"r")
             queryName = (query.split("/")[3]).split(".")[0]
             queryString = ddlFile.read()
@@ -229,11 +248,18 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
             result = session.query(queryString)
             stopTime = time.time()
             queryTime = stopTime - startTime
-            results = "Query: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (
+            results = "Query Complete: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (
             queryName, queryTime, str(result.count()))
-            dbLogger.info(results)
-            if (email):
-                Email.sendEmail(emailAddress, results)
+            uniInfoLog(results,report)
+            if emailAddress:
+                Email.sendEmail(emailAddress, results[:25],results)
+        if (emailAddress):
+            messageLines = []
+            with open(reportName,"r") as reportMsg:
+                for line in reportMsg.readlines():
+                    messageLines.append(line)
+                message =  " ".join(messageLines)
+                Email.sendEmail(emailAddress, "Final Report: "+(reportName.split('/')[2])[:-4],message)
 
 
 
@@ -323,6 +349,8 @@ def cliParse():
                                required=True)
     parser_part.add_argument("--db", dest='database', action="store", help="Database with Tables",
                                required=True)
+    parser_part.add_argument("--email", dest='emailAddress', action="store", help="Email Address for Reports",
+                              required=False)
     parser_analyze.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_analyze.add_argument("--db", dest='database', action="store", help="Database with Tables",
@@ -419,13 +447,19 @@ def getDatabase(master,username,password):
         print "Database already exists. "
     return dbName
 
-def partitionTables(master,parts,username,password,database):
-    print "Partitioning Tables into " + str(parts) + " Partitions each"
 
 
 
+def partitionTables(master,parts,username,password,database,emailAddress=""):
+    loggerInfo  = buildReportLogger("queries")
+    reportName = loggerInfo[0]
+    report = loggerInfo[1]
 
-    print "Partitioning Tables into "+str(parts)+" Partitions each"
+
+    startString = "Partitioning Tables into " + str(parts) + " Partitions each"
+    uniInfoLog(startString,report)
+
+
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     loadList = sorted(glob.glob('./hawq-ddl/load-part/*.sql'))
     tableList = sorted(glob.glob('./hawq-ddl/hawq-part/*.sql'))
@@ -433,19 +467,38 @@ def partitionTables(master,parts,username,password,database):
         for table in tableList:
             ddlFile = open(table,"r")
             tableName = (table.split("/")[3]).split(".")[0]
-            print "Creating Table: "+tableName
+            createStatus = "Creating Table: "+tableName
+            uniInfoLog(createStatus,report)
             tableDDL = ddlFile.read()
             tableDDL = tableDDL.replace("$PARTS",parts)
             result = session.query(tableDDL)
+            createStatus = "Table Created: "+tableName
+            uniInfoLog(createStatus,report)
+            if emailAddress:
+                Email.sendEmail(emailAddress,createStatus,createStatus)
 
     with queries.Session(hawqURI) as session:
         for load in loadList:
             ddlFile = open(load,"r")
             tableName = ((load.split("/")[3]).split(".")[0])[:-5]
-            print "Loading: "+tableName
+            loadStatus = "Loading: "+tableName
+            uniInfoLog(loadStatus,report)
             loadDDL = ddlFile.read()
 
             result = session.query(loadDDL)
+            createStatus = "Table Created: "+tableName
+            uniInfoLog(createStatus,report)
+            if emailAddress:
+                Email.sendEmail(emailAddress,createStatus,createStatus)
+
+    if (emailAddress):
+        messageLines = []
+        with open(reportName,"r") as reportMsg:
+            for line in reportMsg.readlines():
+                messageLines.append(line)
+            message =  " ".join(messageLines)
+            Email.sendEmail(emailAddress, "Final Report: "+(reportName.split('/')[2])[:-4],message)
+
 
 
 def capacityReport(namenode,hdfsDir):
@@ -500,20 +553,25 @@ def main(args):
         password = getGpadminCreds(args.hawqMaster)
 
         adminPassword = getAdminCreds(args.hostsFile, args.adminUser)
-        email = False
         if (args.emailAddress):
-            email = True
             executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
                            args.adminUser,
-                           adminPassword, email, args.emailAddress)
+                           adminPassword, args.emailAddress)
         else:
             executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
                            args.adminUser,
-                           adminPassword, email, args.emailAddress)
+                           adminPassword)
 
     elif (args.subparser_name=="part"):
+
         password = getGpadminCreds(args.hawqMaster)
-        partitionTables(args.hawqMaster,args.parts,username,password,args.database)
+        if (args.emailAddress):
+            partitionTables(args.hawqMaster,args.parts,username,password,args.database,args.emailAddress)
+        else:
+            partitionTables(args.hawqMaster,args.parts,username,password,args.database)
+
+
+
     elif (args.subparser_name=="analyze"):
         password = getGpadminCreds(args.hawqMaster)
         analyzeHawqTables(args.hawqMaster,args.database,username,password)
