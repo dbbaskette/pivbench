@@ -52,7 +52,6 @@ factTables = (
     'store_sales', 'store_returns', 'web_sales', 'web_returns', 'catalog_sales', 'catalog_returns', 'inventory')
 
 
-
 def buildGen():
     currentDir = os.getcwd()
     if not PackageManager.installed(["gcc"]):
