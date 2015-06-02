@@ -247,7 +247,7 @@ def getGpadminCreds(master):
 
 def getAdminCreds(hostFile):
     admin=[]
-    username = raw_input("Please Enter a username of an admin user (ex: root):")
+    username = input("Please Enter a username of an admin user (ex: root):")
     admin.append(username)
     password = getpass.getpass("Password for " + username + " (needed for Buffer Clears):")
     admin.append(password)
@@ -412,7 +412,7 @@ def analyzeHawqTables(master,database,username,password):
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
     try:
-        dbName = raw_input("Please Enter a Name for the HAWQ TPC-DS Database:")
+        dbName = input("Please Enter a Name for the HAWQ TPC-DS Database:")
         with queries.Session(hawqURI) as session:
             result = session.query("create database "+dbName)
     except psycopg2.ProgrammingError as e:
