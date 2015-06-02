@@ -18,7 +18,7 @@ import getpass
 from utils import ssh, PackageManager,Hadoop
 import datetime
 from multiprocessing import Process
-
+import paramiko
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
@@ -174,39 +174,32 @@ def createPXFTables(master,database,username,password,scale,base,namenode):
 
 
 
-def clearBuffers(hostsFile):
+def clearBuffers(hostsFile,adminUser,adminPassword):
 
     #FIX PASSWORD!!!!!
     threadList = []
     with open(hostsFile,"r") as hostsReader:
        hosts = hostsReader.readlines()
     for host in hosts:
-        p= Process(target=ssh.exec_command2,args=(host.rstrip(),"root","password","free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m"),)
+        p= Process(target=ssh.exec_command2,args=(host.rstrip(),adminUser,adminPassword,"free -m;echo 3 > /proc/sys/vm/drop_caches;sync;free -m"),)
         threadList.append(p)
 
+
+
     for thread in threadList:
+
         thread.start()
+
     for thread in threadList:
         thread.join()
         print thread
 
     print "Buffers Cleared"
 
-
-# # Make the Pool of workers
-# pool = ThreadPool(4)
-#
-# # Open the urls in their own threads
-# # and return the results
-# results = pool.map(urllib2.urlopen, urls)
-#
-# #close the pool and wait for the work to finish
-# pool.close()
-# pool.join()
+      #
 
 
-
-def executeQueries(master,database,username,password,queryList,hostsFile):
+def executeQueries(master,database,username,password,queryList,hostsFile,adminUser,adminPassword):
     dbLogger.info( "---------------------------------")
     dbLogger.info( "Executing HAWQ Queries")
     dbLogger.info( "---------------------------------")
@@ -228,7 +221,7 @@ def executeQueries(master,database,username,password,queryList,hostsFile):
 
     with queries.Session(hawqURI) as session:
         for query in queryLocations:
-            clearBuffers(hostsFile)
+            clearBuffers(hostsFile,adminUser,adminPassword)
             ddlFile = open(query,"r")
             queryName = (query.split("/")[3]).split(".")[0]
             queryString = ddlFile.read()
@@ -248,6 +241,30 @@ def getGpadminCreds(master):
     #with queries.Session(hawqURI) as session:
 
     return gpPassword
+
+
+def getAdminCreds(hostFile):
+    admin=[]
+    admin.append(raw_input("Please Enter a username of an admin user (ex: root):"))
+    admin.append(getpass.getpass("Password for "+admin[0]+" (needed for Buffer Clears):"))
+
+
+    with open(hostFile,"r") as hostsReader:
+        hosts = hostsReader.readlines()
+   
+    for host in hosts:
+        print "Testing access to "+host
+        try:
+            ssh.exec_command2(host.rstrip(),admin[0],admin[1],"touch /.test")
+        except paramiko.AuthenticationException as e:
+            print "Error:  Username/password not correct"
+            exit()
+        except Exception as e2:
+            print "Error:  Unknown Host"
+            exit()
+
+
+    return admin
 
 
 def cliParse():
@@ -473,8 +490,9 @@ def main(args):
             exit()
         password = getGpadminCreds(args.hawqMaster)
 
+        admin = getAdminCreds(args.hostsFile)
 
-        executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile)
+        executeQueries(args.hawqMaster,args.database,username,password,queryList,args.hostsFile,admin[0],admin[1])
     elif (args.subparser_name=="part"):
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
