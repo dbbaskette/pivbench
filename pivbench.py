@@ -245,12 +245,8 @@ def getGpadminCreds(master):
     return gpPassword
 
 
-def getAdminCreds(hostFile):
-    admin=[]
-    username = input("Please Enter a username of an admin user (ex: root):")
-    admin.append(username)
-    password = getpass.getpass("Password for " + username + " (needed for Buffer Clears):")
-    admin.append(password)
+def getAdminCreds(hostFile, adminUser):
+    password = getpass.getpass("Password for " + adminUser + " (needed for Buffer Clears):")
 
 
     with open(hostFile,"r") as hostsReader:
@@ -259,7 +255,7 @@ def getAdminCreds(hostFile):
     for host in hosts:
         print "Testing access to "+host
         try:
-            ssh.exec_command2(host.rstrip(), username, password, "touch /.test")
+            ssh.exec_command2(host.rstrip(), adminUser, password, "touch /.test")
         except paramiko.AuthenticationException as e:
             print "Error:  Username/password not correct"
             exit()
@@ -267,8 +263,7 @@ def getAdminCreds(hostFile):
             print "Error:  Unknown Host"
             exit()
 
-
-    return admin
+    return password
 
 
 def cliParse():
@@ -295,6 +290,8 @@ def cliParse():
                                required=True)
     parser_query.add_argument("--set", dest='querySet', action="store", help="File with a QuerySet (CSV)",
                                required=False)
+    parser_query.add_argument("--admin", dest='adminUser', action="store", help="User with Admin Prics (root)",
+                              required=False, default="root")
     parser_load.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
     parser_load.add_argument("--scale", dest='scale', action="store",
@@ -494,10 +491,10 @@ def main(args):
             exit()
         password = getGpadminCreds(args.hawqMaster)
 
-        admin = getAdminCreds(args.hostsFile)
+        adminPassword = getAdminCreds(args.hostsFile, args.adminUser)
 
-        executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile, admin[0],
-                       admin[1])
+        executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile, args.adminUser,
+                       adminPassword)
     elif (args.subparser_name=="part"):
         password = getGpadminCreds(args.hawqMaster)
         partitionTables(args.hawqMaster,args.parts,username,password,args.database)
