@@ -21,7 +21,8 @@ from utils import ssh, PackageManager, Hadoop, Email
 
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-
+if not os.path.exists("./log"):
+    os.makedirs("./log")
 LOG_FILENAME = 'pivotal-benchmark.log'
 rootLogger = logging.getLogger("Root Logger")
 logHandler = logging.FileHandler(LOG_FILENAME)
