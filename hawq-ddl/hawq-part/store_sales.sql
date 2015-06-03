@@ -24,7 +24,9 @@ create table store_sales
     ss_net_paid               decimal(7,2)                  ,
     ss_net_paid_inc_tax       decimal(7,2)                  ,
     ss_net_profit             decimal(7,2)
-) distributed by (ss_item_sk, ss_ticket_number)
+)
+with (appendonly=true, ORIENTATION=$ORIENTATION)
+distributed by (ss_item_sk, ss_ticket_number)
 partition by range(ss_sold_date_sk)
 (start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
 default partition outliers

@@ -35,7 +35,9 @@ create table web_sales
     ws_net_paid_inc_ship      decimal(7,2)                  ,
     ws_net_paid_inc_ship_tax  decimal(7,2)                  ,
     ws_net_profit             decimal(7,2)
-) distributed by (ws_item_sk, ws_order_number)
+)
+with (appendonly=true, ORIENTATION=$ORIENTATION)
+distributed by (ws_item_sk, ws_order_number)
 partition by range(ws_sold_date_sk)
 (start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
 default partition outliers
