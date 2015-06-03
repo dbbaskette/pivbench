@@ -453,8 +453,7 @@ def partitionTables(master,parts,username,password,database,emailAddress=""):
     reportName = loggerInfo[0]
     report = loggerInfo[1]
 
-
-    startString = "Partitioning Tables into " + str(parts) + " Partitions each"
+    startString = "Partitioning Tables into " + str(parts) + " Day Partitions"
     uniInfoLog(startString,report)
 
 
