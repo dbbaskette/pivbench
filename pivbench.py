@@ -449,7 +449,7 @@ def getDatabase(master,username,password):
 
 
 def partitionTables(master,parts,username,password,database,emailAddress=""):
-    loggerInfo  = buildReportLogger("queries")
+    loggerInfo = buildReportLogger("partitioning")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
 
