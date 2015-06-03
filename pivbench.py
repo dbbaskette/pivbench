@@ -349,6 +349,8 @@ def cliParse():
                                required=True)
     parser_part.add_argument("--email", dest='emailAddress', action="store", help="Email Address for Reports",
                               required=False)
+    parser_part.add_argument("--orientation", dest='orientation', action="store", help="Storage Format",
+                             required=False)
     parser_analyze.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_analyze.add_argument("--db", dest='database', action="store", help="Database with Tables",
@@ -446,14 +448,12 @@ def getDatabase(master,username,password):
     return dbName
 
 
-
-
-def partitionTables(master,parts,username,password,database,emailAddress=""):
+def partitionTables(master, parts, username, password, database, orientation, emailAddress=""):
     loggerInfo = buildReportLogger("partitioning")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
 
-    startString = "Partitioning Tables into " + str(parts) + " Day Partitions"
+    startString = "Partitioning Tables into " + str(parts) + " Day Partitions in " + orientation + " Format"
     uniInfoLog(startString,report)
 
 
@@ -468,6 +468,7 @@ def partitionTables(master,parts,username,password,database,emailAddress=""):
             uniInfoLog(createStatus,report)
             tableDDL = ddlFile.read()
             tableDDL = tableDDL.replace("$PARTS",parts)
+            tableDDL = tableDDL.replace("$ORIENTATION", orientation)
             result = session.query(tableDDL)
             createStatus = "Table Created: "+tableName
             uniInfoLog(createStatus,report)
@@ -481,7 +482,6 @@ def partitionTables(master,parts,username,password,database,emailAddress=""):
             loadStatus = "Loading: "+tableName
             uniInfoLog(loadStatus,report)
             loadDDL = ddlFile.read()
-
             result = session.query(loadDDL)
             createStatus = "Table Loaded: "+tableName
             uniInfoLog(createStatus,report)
@@ -550,6 +550,7 @@ def main(args):
         password = getGpadminCreds(args.hawqMaster)
 
         adminPassword = getAdminCreds(args.hostsFile, args.adminUser)
+
         if (args.emailAddress):
             executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
                            args.adminUser,
@@ -562,10 +563,16 @@ def main(args):
     elif (args.subparser_name=="part"):
 
         password = getGpadminCreds(args.hawqMaster)
-        if (args.emailAddress):
-            partitionTables(args.hawqMaster,args.parts,username,password,args.database,args.emailAddress)
+        if (args.orientation):
+            orientation = args.orientation
         else:
-            partitionTables(args.hawqMaster,args.parts,username,password,args.database)
+            orientation = "ROW"
+
+        if (args.emailAddress):
+            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation,
+                            args.emailAddress)
+        else:
+            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation)
 
 
 

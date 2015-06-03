@@ -22,7 +22,9 @@ create table store_returns
     sr_reversed_charge        decimal(7,2)                  ,
     sr_store_credit           decimal(7,2)                  ,
     sr_net_loss               decimal(7,2)
-) distributed by (sr_item_sk, sr_ticket_number)
+)
+with (appendonly=true, ORIENTATION=$ORIENTATION)
+distributed by (sr_item_sk, sr_ticket_number)
 partition by range(sr_returned_date_sk)
 (start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
 default partition outliers
