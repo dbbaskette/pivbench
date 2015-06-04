@@ -1,0 +1,1 @@
+insert into $PARTNAME select * from web_returns_nopart where wr_returned_date_sk between $PARTVALUE1 and $PARTVALUE2;

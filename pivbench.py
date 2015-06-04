@@ -257,7 +257,7 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
                 for line in reportMsg.readlines():
                     messageLines.append(line)
                 message =  " ".join(messageLines)
-                Email.sendEmail(emailAddress, "Final Report: "+(reportName.split('/')[2])[:-4],message)
+                Email.sendEmail(emailAddress, "Query Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
 
@@ -351,6 +351,8 @@ def cliParse():
                               required=False)
     parser_part.add_argument("--orientation", dest='orientation', action="store", help="Storage Format",
                              required=False)
+    parser_part.add_argument("--bypart", dest='bypart', action="store", help="True/False Load by Partition",
+                             required=False)
     parser_analyze.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_analyze.add_argument("--db", dest='database', action="store", help="Database with Tables",
@@ -407,35 +409,54 @@ def loadHawqTables(master,username,password,database):
             print "----------------------------------------"
 
 
+def analyzeHawqTables(master, database, username, password, emailAddress):
+    loggerInfo = buildReportLogger("analyze")
+    reportName = loggerInfo[0]
+    report = loggerInfo[1]
+    header = []
+    startString = "Analyze Database Tables to Generate Statistics"
+    uniInfoLog(startString, report)
+    header = "Analyzing HAWQ Tables"
+    uniInfoLog(header, report)
 
 
-def analyzeHawqTables(master,database,username,password):
+
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     with queries.Session(hawqURI) as session:
-        dbLogger.info("Analyze Dimension Tables")
-        dbLogger.info( "----------------------------------------")
-
+        uniInfoLog("Analyze Dimension Tables", report)
         for table in dimensionTables:
-            ddlString = "analyze "+table
+            ddlString = "Analyze " + table
             startTime = datetime.datetime.now()
-            dbLogger.info( "Start "+ddlString+": "+str(startTime))
+            uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
             result = session.query(ddlString)
             stopTime = datetime.datetime.now()
-            dbLogger.info("Completed "+ddlString+": "+str(stopTime))
-            dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
-            dbLogger.info( "----------------------------------------")
-        dbLogger.info("Analyze Fact Tables")
-        dbLogger.info( "----------------------------------------")
+            resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
+                stopTime - startTime)
+            uniInfoLog(resultString, report)
+            if emailAddress:
+                Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
+        uniInfoLog("Analyze Fact Tables", report)
 
         for table in factTables:
             ddlString = "analyze "+table
             startTime = datetime.datetime.now()
-            dbLogger.info( "Start "+ddlString+": "+str(startTime))
+            uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
             result = session.query(ddlString)
-            startTime = datetime.datetime.now()
-            dbLogger.info("Completed "+ddlString+": "+str(stopTime))
-            dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
-            dbLogger.info( "----------------------------------------")
+            stopTime = datetime.datetime.now()
+            resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
+                stopTime - startTime)
+            uniInfoLog(resultString, report)
+            if emailAddress:
+                Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
+
+        if (emailAddress):
+            messageLines = []
+            with open(reportName, "r") as reportMsg:
+                for line in reportMsg.readlines():
+                    messageLines.append(line)
+                message = " ".join(messageLines)
+                Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4], message)
+
 
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
@@ -448,40 +469,88 @@ def getDatabase(master,username,password):
     return dbName
 
 
-def partitionTables(master, parts, username, password, database, orientation, emailAddress=""):
+def getPartitionCount(master, database, username, password, table):
+    hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    with queries.Session(hawqURI) as session:
+        queryDDL = "SELECT count(*) AS partitions FROM   pg_inherits i WHERE  i.inhparent = '" + table + "'::regclass;"
+        result = session.query(queryDDL)
+        partitions = result.items()[0]["partitions"]
+
+    return partitions
+
+
+def partitionTables(master, parts, username, password, database, orientation, byPart, emailAddress=""):
     loggerInfo = buildReportLogger("partitioning")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
-
     startString = "Partitioning Tables into " + str(parts) + " Day Partitions in " + orientation + " Format"
     uniInfoLog(startString,report)
 
 
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    loadList = sorted(glob.glob('./hawq-ddl/load-part/*.sql'))
-    tableList = sorted(glob.glob('./hawq-ddl/hawq-part/*.sql'))
-    with queries.Session(hawqURI) as session:
-        for table in tableList:
-            ddlFile = open(table,"r")
-            tableName = (table.split("/")[3]).split(".")[0]
-            createStatus = "Creating Table: "+tableName
-            uniInfoLog(createStatus,report)
-            tableDDL = ddlFile.read()
-            tableDDL = tableDDL.replace("$PARTS",parts)
-            tableDDL = tableDDL.replace("$ORIENTATION", orientation)
-            result = session.query(tableDDL)
-            createStatus = "Table Created: "+tableName
+    if byPart:
+        loadList = sorted(glob.glob('./hawq-ddl/load-partbypart/*.sql'))
+    else:
+        loadList = sorted(glob.glob('./hawq-ddl/load-part/*.sql'))
+
+    # tableList = sorted(glob.glob('./hawq-ddl/hawq-part/*.sql'))
+    # with queries.Session(hawqURI) as session:
+    # for table in tableList:
+    #         ddlFile = open(table,"r")
+    #         tableName = (table.split("/")[3]).split(".")[0]
+    #         createStatus = "Creating Table: "+tableName
+    #         uniInfoLog(createStatus,report)
+    #         tableDDL = ddlFile.read()
+    #         tableDDL = tableDDL.replace("$PARTS",parts)
+    #         tableDDL = tableDDL.replace("$ORIENTATION", orientation)
+    #         result = session.query(tableDDL)
+    #         createStatus = "Table Created: "+tableName
+    #         uniInfoLog(createStatus,report)
+    #         if emailAddress:
+    #             Email.sendEmail(emailAddress,createStatus,createStatus)
+
+
+    #Hard Coded for now because Schema is HardCoded as well
+    startDate = 2450815
+    endDate = 2453005
+    totalDays = endDate - startDate
+
+    for load in loadList:
+        ddlFile = open(load, "r")
+        loadDDL = ddlFile.read()
+        tableName = ((load.split("/")[3]).split(".")[0])[:-13]
+        loadStatus = "Loading: " + tableName
+        uniInfoLog(loadStatus, report)
+        ddlFile = open(load, "r")
+        loadDDL = ddlFile.read()
+        if byPart:
+            partCount = getPartitionCount(master, database, username, password, "inventory")
+            partStart = startDate
+
+            for partNum in range(2, partCount + 1):
+                modDDL = loadDDL
+                #with queries.Session(hawqURI) as session:
+
+                partName = tableName + "_1_prt_" + str(partNum)
+                # End of part is num days in the part added to the first day
+                partEnd = partStart + (int(parts) - 1)
+                modDDL = modDDL.replace("$PARTNAME", str(partName))
+                modDDL = modDDL.replace("$PARTVALUE1", str(partStart))
+                modDDL = modDDL.replace("$PARTVALUE2", str(partEnd))
+               
+                with queries.Session(hawqURI) as session:
+                    result = session.query(modDDL)
+                partStart = partEnd + 1
+                createStatus = "Table Partition Loaded: " + partName
+                uniInfoLog(createStatus, report)
+            createStatus = "Table Loaded: " + tableName
             uniInfoLog(createStatus,report)
             if emailAddress:
                 Email.sendEmail(emailAddress,createStatus,createStatus)
+                # alterniatve
+            # SELECT partitionboundary, partitiontablename, partitionname, partitionlevel, partitionrank FROM pg_partitions WHERE tablename='catalog_returns';
 
-    with queries.Session(hawqURI) as session:
-        for load in loadList:
-            ddlFile = open(load,"r")
-            tableName = ((load.split("/")[3]).split(".")[0])[:-5]
-            loadStatus = "Loading: "+tableName
-            uniInfoLog(loadStatus,report)
-            loadDDL = ddlFile.read()
+        else:
             result = session.query(loadDDL)
             createStatus = "Table Loaded: "+tableName
             uniInfoLog(createStatus,report)
@@ -494,7 +563,7 @@ def partitionTables(master, parts, username, password, database, orientation, em
             for line in reportMsg.readlines():
                 messageLines.append(line)
             message =  " ".join(messageLines)
-            Email.sendEmail(emailAddress, "Final Report: "+(reportName.split('/')[2])[:-4],message)
+            Email.sendEmail(emailAddress, "Repartition Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
 
@@ -526,7 +595,6 @@ def main(args):
 
    
     username = "gpadmin"
-
 
 
     if (args.subparser_name == "load"):
@@ -567,12 +635,16 @@ def main(args):
             orientation = args.orientation
         else:
             orientation = "ROW"
+        if (args.bypart):
+            byPart = args.bypart
+        else:
+            byPart = False
 
         if (args.emailAddress):
-            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation,
+            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation, byPart,
                             args.emailAddress)
         else:
-            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation)
+            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation, byPart)
 
 
 

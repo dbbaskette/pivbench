@@ -1,0 +1,1 @@
+insert into $PARTNAME select * from catalog_returns_nopart where cr_returned_date_sk between $PARTVALUE1 and $PARTVALUE2;

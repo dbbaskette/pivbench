@@ -1,0 +1,1 @@
+insert into $PARTNAME select * from store_returns_nopart where sr_returned_date_sk between $PARTVALUE1 and $PARTVALUE2;
