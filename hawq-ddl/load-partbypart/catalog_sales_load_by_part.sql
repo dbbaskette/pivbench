@@ -1,1 +1,1 @@
-insert into catalog_sales select * from catalog_sales_nopart where cs_sold_date_sk between $PARTVALUE1 and $PARTVALUE2;
+insert into $PARTNAME select * from catalog_sales_nopart where cs_sold_date_sk between $PARTVALUE1 and $PARTVALUE2;

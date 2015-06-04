@@ -531,12 +531,13 @@ def partitionTables(master, parts, username, password, database, orientation, by
                 modDDL = loadDDL
                 #with queries.Session(hawqURI) as session:
 
-                partName = tableName + "_1_prt" + str(partNum)
+                partName = tableName + "_1_prt_" + str(partNum)
                 # End of part is num days in the part added to the first day
-                partEnd = partStart + int(parts)
+                partEnd = partStart + (int(parts) - 1)
+                modDDL = modDDL.replace("$PARTNAME", str(partName))
                 modDDL = modDDL.replace("$PARTVALUE1", str(partStart))
                 modDDL = modDDL.replace("$PARTVALUE2", str(partEnd))
-
+               
                 with queries.Session(hawqURI) as session:
                     result = session.query(modDDL)
                 partStart = partEnd + 1
@@ -546,7 +547,8 @@ def partitionTables(master, parts, username, password, database, orientation, by
             uniInfoLog(createStatus,report)
             if emailAddress:
                 Email.sendEmail(emailAddress,createStatus,createStatus)
-
+                # alterniatve
+            # SELECT partitionboundary, partitiontablename, partitionname, partitionlevel, partitionrank FROM pg_partitions WHERE tablename='catalog_returns';
 
         else:
             result = session.query(loadDDL)
