@@ -1,0 +1,1 @@
+insert into store_sales select * from store_sales_nopart where between $PARTVALUE1 and $PARTVALUE2;

@@ -1,0 +1,1 @@
+insert into web_sales select * from web_sales_nopart where ws_sold_date_sk between $PARTVALUE1 and $PARTVALUE2;
