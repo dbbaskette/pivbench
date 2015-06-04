@@ -257,7 +257,7 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
                 for line in reportMsg.readlines():
                     messageLines.append(line)
                 message =  " ".join(messageLines)
-                Email.sendEmail(emailAddress, "Final Report: "+(reportName.split('/')[2])[:-4],message)
+                Email.sendEmail(emailAddress, "Query Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
 
@@ -407,35 +407,54 @@ def loadHawqTables(master,username,password,database):
             print "----------------------------------------"
 
 
+def analyzeHawqTables(master, database, username, password, emailAddress):
+    loggerInfo = buildReportLogger("analyze")
+    reportName = loggerInfo[0]
+    report = loggerInfo[1]
+    header = []
+    startString = "Analyze Database Tables to Generate Statistics"
+    uniInfoLog(startString, report)
+    header = "Analyzing HAWQ Tables"
+    uniInfoLog(header, report)
 
 
-def analyzeHawqTables(master,database,username,password):
+
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     with queries.Session(hawqURI) as session:
-        dbLogger.info("Analyze Dimension Tables")
-        dbLogger.info( "----------------------------------------")
-
+        uniInfoLog("Analyze Dimension Tables", report)
         for table in dimensionTables:
-            ddlString = "analyze "+table
+            ddlString = "Analyze " + table
             startTime = datetime.datetime.now()
-            dbLogger.info( "Start "+ddlString+": "+str(startTime))
+            uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
             result = session.query(ddlString)
             stopTime = datetime.datetime.now()
-            dbLogger.info("Completed "+ddlString+": "+str(stopTime))
-            dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
-            dbLogger.info( "----------------------------------------")
-        dbLogger.info("Analyze Fact Tables")
-        dbLogger.info( "----------------------------------------")
+            resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
+                stopTime - startTime)
+            uniInfoLog(resultString, report)
+            if emailAddress:
+                Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
+        uniInfoLog("Analyze Fact Tables", report)
 
         for table in factTables:
             ddlString = "analyze "+table
             startTime = datetime.datetime.now()
-            dbLogger.info( "Start "+ddlString+": "+str(startTime))
+            uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
             result = session.query(ddlString)
-            startTime = datetime.datetime.now()
-            dbLogger.info("Completed "+ddlString+": "+str(stopTime))
-            dbLogger.info( "Elapsed Time: "+str(stopTime - startTime))
-            dbLogger.info( "----------------------------------------")
+            stopTime = datetime.datetime.now()
+            resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
+                stopTime - startTime)
+            uniInfoLog(resultString, report)
+            if emailAddress:
+                Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
+
+        if (emailAddress):
+            messageLines = []
+            with open(reportName, "r") as reportMsg:
+                for line in reportMsg.readlines():
+                    messageLines.append(line)
+                message = " ".join(messageLines)
+                Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4], message)
+
 
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
@@ -494,7 +513,7 @@ def partitionTables(master, parts, username, password, database, orientation, em
             for line in reportMsg.readlines():
                 messageLines.append(line)
             message =  " ".join(messageLines)
-            Email.sendEmail(emailAddress, "Final Report: "+(reportName.split('/')[2])[:-4],message)
+            Email.sendEmail(emailAddress, "Repartition Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
 
