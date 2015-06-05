@@ -332,6 +332,8 @@ def cliParse():
                                required=True)
     parser_load.add_argument("--db", dest='database', action="store", help="Database to Load",
                                required=True)
+    parser_load.add_argument("--email", dest='emailAddress', action="store", help="Email Address for Reports",
+                             required=False)
     # Add HIVE Support Later
     #parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
     #                          required=True)
@@ -386,33 +388,43 @@ def cliParse():
     main(args)
 
 
-
-
-
-def loadHawqTables(master,username,password,database):
-    pbLogger.info("---------------------------------")
-    pbLogger.info("Load HAWQ Internal Tables")
-    pbLogger.info("---------------------------------")
+def loadHawqTables(master, username, password, database, emailAddress):
+    loggerInfo = buildReportLogger("load")
+    reportName = loggerInfo[0]
+    report = loggerInfo[1]
+    uniInfoLog("Load HAWQ Internal Tables", report)
 
 
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     loadList = sorted(glob.glob('./hawq-ddl/load/*.sql'))
 
-
-
-    with queries.Session(hawqURI) as session:
-        for load in loadList:
-            ddlFile = open(load,"r")
-            tableName = ((load.split("/")[3]).split(".")[0])[:-5]
-            print "Loading: "+tableName
-            loadDDL = ddlFile.read()
-            startTime = datetime.datetime.now()
-            print "Start Load of     "+tableName +": "+str(startTime)
+    for load in loadList:
+        ddlFile = open(load, "r")
+        tableName = ((load.split("/")[3]).split(".")[0])[:-5]
+        loadDDL = ddlFile.read()
+        startTime = datetime.datetime.now()
+        pxfName = tableName
+        if tableName in factTables:
+            tableName = tableName + "_nopart"
+        uniInfoLog("Starting Load of " + tableName, report)
+        with queries.Session(hawqURI) as session:
             result = session.query(loadDDL)
-            stopTime = datetime.datetime.now()
-            print "Completed Load of "+tableName+": "+str(stopTime)
-            print "Elapsed Time: "+str(stopTime - startTime)
-            print "----------------------------------------"
+        stopTime = datetime.datetime.now()
+        uniInfoLog("Completed Load of " + tableName, report)
+        uniInfoLog("Load Time: " + str(stopTime - startTime), report)
+        rowsPXF = rowCount(master, database, username, password, pxfName + "_pxf")
+        rows = rowCount(master, database, username, password, tableName)
+        uniInfoLog("Expected Rows: " + str(rowsPXF), report)
+        uniInfoLog("Actual Rows  : " + str(rows), report)
+        if emailAddress:
+            Email.sendEmail(emailAddress, "Completed Load of " + tableName, "Loaded " + str(rows) + " Rows")
+    if (emailAddress):
+        messageLines = []
+        with open(reportName, "r") as reportMsg:
+            for line in reportMsg.readlines():
+                messageLines.append(line)
+            message = " ".join(messageLines)
+            Email.sendEmail(emailAddress, "Table Load Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
 def analyzeHawqTables(master, database, username, password, emailAddress=""):
@@ -464,8 +476,15 @@ def analyzeHawqTables(master, database, username, password, emailAddress=""):
                 Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
-def rowCounts(master, database, username, password):
-    print "Get Row Counts for ALL Tables"
+def rowCount(master, database, username, password, table):
+    hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    with queries.Session(hawqURI) as session:
+        result = session.query("select count(*) from " + table + ";")
+        return str(result.items()[0]['count'])
+
+
+
+
 
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
@@ -611,12 +630,11 @@ def main(args):
 
 
     if (args.subparser_name == "load"):
-        print '\n\n\n'
+
         password = getGpadminCreds(args.hawqMaster)
-        pbLogger.info("HAWQ Testing")
         createTables(args.hawqMaster,args.database,username,password)
         createPXFTables(args.hawqMaster,args.database,username,password,args.scale,args.base,args.namenode)
-        loadHawqTables(args.hawqMaster,username,password,args.database)
+        loadHawqTables(args.hawqMaster, username, password, args.database, args.emailAddress)
     elif (args.subparser_name =="gen"):
         generateData(args.scale, args.base, args.namenode, args.tableName)
     elif (args.subparser_name =="query"):
