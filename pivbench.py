@@ -640,7 +640,7 @@ def main(args):
         createPXFTables(args.hawqMaster,args.database,username,password,args.scale,args.base,args.namenode)
         loadHawqTables(args.hawqMaster, username, password, args.database, args.emailAddress)
     elif (args.subparser_name =="gen"):
-        generateData(args.scale, args.base, args.namenode, args.tableName)
+        generateData(args.scale, args.base, args.namenode)  # , args.tableName)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
         if (args.querySet):
