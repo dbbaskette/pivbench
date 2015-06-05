@@ -554,7 +554,8 @@ def partitionTables(master, parts, username, password, database, orientation, by
             # SELECT partitionboundary, partitiontablename, partitionname, partitionlevel, partitionrank FROM pg_partitions WHERE tablename='catalog_returns';
 
         else:
-            result = session.query(loadDDL)
+            with queries.Session(hawqURI) as session:
+                result = session.query(loadDDL)
             createStatus = "Table Loaded: "+tableName
             uniInfoLog(createStatus,report)
             if emailAddress:
