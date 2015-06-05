@@ -131,7 +131,8 @@ def generateData(scale, base, namenode, tableName=""):
     # else:
     #     result = Hadoop.run(jarFile, scale, base)
     result = Hadoop.run(jarFile, scale, base)
-    Hadoop.appStatus("tpcds2")
+    # Hadoop.appStatus("tpcds2")
+    # Need threading here to make this work
 
     print result
     uniInfoLog("Data Generation MapRed Job Complete", report)
