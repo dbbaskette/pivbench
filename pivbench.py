@@ -107,7 +107,9 @@ def buildGen():
 
 
 def generateData(scale, base, namenode, tableName=""):
-    print "Data Generation"
+    loggerInfo = buildReportLogger("gen")
+    reportName = loggerInfo[0]
+    report = loggerInfo[1]
     if (Hadoop.ls(base))[0] == -1:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
@@ -122,13 +124,16 @@ def generateData(scale, base, namenode, tableName=""):
     for file in glob.glob("target/*.jar"):
         jarFile = file
 
-    print "Data Generation MapRed Job Starting"
-    if tableName:
-        result = Hadoop.runTable(jarFile, scale, base, tableName)
-    else:
-        result = Hadoop.run(jarFile, scale, base)
-    print "Data Generation MapRed Job Complete"
-    print "Changing Replication Factor of RawData to 2"
+    uniInfoLog("Data Generation MapRed Job Starting", report)
+    # TABLE GEN DOESN"T WORK, SO COMMENTING THIS OUT TO KEEP FROM RUNNING IT
+    # if tableName:
+    #     result = Hadoop.runTable(jarFile, scale, base, tableName)
+    # else:
+    #     result = Hadoop.run(jarFile, scale, base)
+    result = Hadoop.run(jarFile, scale, base)
+    print result
+    uniInfoLog("Data Generation MapRed Job Complete", report)
+    uniInfoLog("Changing Replication Factor of RawData to 2")
     result = Hadoop.setrep(2,base)
 
 
@@ -343,8 +348,7 @@ def cliParse():
                                required=False)
     parser_gen.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
-    parser_gen.add_argument("--table", dest='tableName', action="store", help="Gen a particular Table",
-                            required=False)
+    #parser_gen.add_argument("--table", dest='tableName', action="store", help="Gen a particular Table",required=False)
 
 
     parser_part.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
