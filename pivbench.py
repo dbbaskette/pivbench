@@ -106,6 +106,8 @@ def buildGen():
 
 
 def generateData(scale, base, namenode, tableName=""):
+    Hadoop.appStatus("tpcds2")
+
     loggerInfo = buildReportLogger("gen")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
@@ -122,7 +124,6 @@ def generateData(scale, base, namenode, tableName=""):
 
     for file in glob.glob("target/*.jar"):
         jarFile = file
-    Hadoop.appStatus("tpcds2")
     uniInfoLog("Data Generation MapRed Job Starting", report)
     # TABLE GEN DOESN"T WORK, SO COMMENTING THIS OUT TO KEEP FROM RUNNING IT
     # if tableName:
