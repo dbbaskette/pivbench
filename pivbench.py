@@ -518,7 +518,10 @@ def partitionTables(master, parts, username, password, database, orientation, by
     for load in loadList:
         ddlFile = open(load, "r")
         loadDDL = ddlFile.read()
-        tableName = ((load.split("/")[3]).split(".")[0])[:-13]
+        if byPart:
+            tableName = ((load.split("/")[3]).split(".")[0])[:-13]
+        else:
+            tableName = ((load.split("/")[3]).split(".")[0])[:-5]
         loadStatus = "Loading: " + tableName
         uniInfoLog(loadStatus, report)
         ddlFile = open(load, "r")
