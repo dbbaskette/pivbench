@@ -52,7 +52,9 @@ def appStatus(resourceManager):
     url = "http://" + resourceManager + ":8088/ws/v1/cluster/apps"
     response = requests.get(url)
     appsJSON = json.loads(response.text)
-    print appsJSON
+    print str(appsJSON['apps']["app"][0]["id"])
+
+
 
     exit()
 
