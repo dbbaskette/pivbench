@@ -51,7 +51,9 @@ def size(hdfsPath):
 def appStatus(resourceManager):
     url = "http://" + resourceManager + ":8088/ws/v1/cluster/apps"
     response = requests.get(url)
-    print json.loads(response.text)
+    appsJSON = json.loads(response.text)
+    for app in appsJSON["apps"]:
+        print app['id']
 
 # cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
 # url = "http://" + hostName + ":8080/api/v1/stacks/PHD/versions/3.0/operating_systems/redhat6/repositories/PHD-3.0"
