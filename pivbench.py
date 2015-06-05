@@ -32,12 +32,12 @@ rootLogger.setLevel(logging.DEBUG)
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 
-DBLOG_FILENAME = './logs/db.log'
-dbLogger = logging.getLogger("Database Operation Logging")
-dblogHandler = logging.FileHandler(DBLOG_FILENAME)
-dblogHandler.setFormatter(formatter)
-dbLogger.addHandler(dblogHandler)
-dbLogger.setLevel(logging.INFO)
+PBLOG_FILENAME = './logs/pivbench.log'
+pbLogger = logging.getLogger("Database Operation Logging")
+pblogHandler = logging.FileHandler(PBLOG_FILENAME)
+pblogHandler.setFormatter(formatter)
+pbLogger.addHandler(pblogHandler)
+pbLogger.setLevel(logging.INFO)
 
 workingDir = os.getcwd()
 
@@ -106,9 +106,8 @@ def buildGen():
 
 
 
-def generateData(scale,base,namenode ):
+def generateData(scale, base, namenode, tableName=""):
     print "Data Generation"
-
     if (Hadoop.ls(base))[0] == -1:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
@@ -124,7 +123,10 @@ def generateData(scale,base,namenode ):
         jarFile = file
 
     print "Data Generation MapRed Job Starting"
-    result = Hadoop.run(jarFile,scale,base)
+    if tableName:
+        result = Hadoop.runTable(jarFile, scale, base, tableName)
+    else:
+        result = Hadoop.run(jarFile, scale, base)
     print "Data Generation MapRed Job Complete"
     print "Changing Replication Factor of RawData to 2"
     result = Hadoop.setrep(2,base)
@@ -133,9 +135,9 @@ def generateData(scale,base,namenode ):
 
 
 def createTables(master,database,username,password):
-    dbLogger.info( "---------------------------------")
-    dbLogger.info( "Creating HAWQ Internal Tables")
-    dbLogger.info( "---------------------------------")
+    pbLogger.info("---------------------------------")
+    pbLogger.info("Creating HAWQ Internal Tables")
+    pbLogger.info("---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     tableList = sorted(glob.glob('./hawq-ddl/hawq/*.sql'))
 
@@ -149,10 +151,9 @@ def createTables(master,database,username,password):
 
 
 def createPXFTables(master,database,username,password,scale,base,namenode):
-
-    dbLogger.info( "---------------------------------")
-    dbLogger.info( "Creating HAWQ PXF External Tables")
-    dbLogger.info( "---------------------------------")
+    pbLogger.info("---------------------------------")
+    pbLogger.info("Creating HAWQ PXF External Tables")
+    pbLogger.info("---------------------------------")
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
     tableList = sorted(glob.glob('./hawq-ddl/pxf/*.sql'))
 
@@ -200,7 +201,7 @@ def buildReportLogger(name):
 
 def uniInfoLog(msg,logger):
     #for now uses db and user defined
-    dbLogger.info(msg)
+    pbLogger.info(msg)
     logger.info(msg)
 
 
@@ -323,8 +324,8 @@ def cliParse():
                                required=True)
     parser_load.add_argument("--scale", dest='scale', action="store",
                                help="Scale:  30000=30TB", required=True)
-    parser_load.add_argument("--parquet", dest='format', action="store", help="Store as Parquet Formatted",
-                               required=False)
+    # parser_load.add_argument("--orientation", dest='orientation', action="store", help="row/column/parquet",
+    #                          required=False)
     parser_load.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
     parser_load.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
@@ -340,6 +341,9 @@ def cliParse():
                                required=False)
     parser_gen.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
+    parser_gen.add_argument("--table", dest='tableName', action="store", help="Gen a particular Table",
+                            required=False)
+
 
     parser_part.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                required=True)
@@ -384,9 +388,9 @@ def cliParse():
 
 
 def loadHawqTables(master,username,password,database):
-    dbLogger.info( "---------------------------------")
-    dbLogger.info( "Load HAWQ Internal Tables")
-    dbLogger.info( "---------------------------------")
+    pbLogger.info("---------------------------------")
+    pbLogger.info("Load HAWQ Internal Tables")
+    pbLogger.info("---------------------------------")
 
 
     hawqURI=queries.uri(master, port=5432, dbname=database, user=username, password=password)
@@ -457,6 +461,9 @@ def analyzeHawqTables(master, database, username, password, emailAddress):
                 message = " ".join(messageLines)
                 Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4], message)
 
+
+def rowCounts(master, database, username, password):
+    print "Get Row Counts for ALL Tables"
 
 def getDatabase(master,username,password):
     hawqURI=queries.uri(master, port=5432, dbname='gpadmin', user=username, password=password)
@@ -604,12 +611,12 @@ def main(args):
     if (args.subparser_name == "load"):
         print '\n\n\n'
         password = getGpadminCreds(args.hawqMaster)
-        dbLogger.info( "HAWQ Testing")
+        pbLogger.info("HAWQ Testing")
         createTables(args.hawqMaster,args.database,username,password)
         createPXFTables(args.hawqMaster,args.database,username,password,args.scale,args.base,args.namenode)
         loadHawqTables(args.hawqMaster,username,password,args.database)
     elif (args.subparser_name =="gen"):
-        generateData(args.scale,args.base,args.namenode)
+        generateData(args.scale, args.base, args.namenode, args.tableName)
     elif (args.subparser_name =="query"):
         logging.info( "Query")
         if (args.querySet):

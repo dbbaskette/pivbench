@@ -21,6 +21,14 @@ def run(jarFile,scale,base):
         print e
         return (-1,e.stderr)
 
+
+def runTable(jarFile, scale, base, tableName):
+    try:
+        return (0, sh.hadoop("jar", jarFile, "-d", base + "/" + str(scale) + "/", "-s", scale, "-t", tableName))
+    except sh.ErrorReturnCode as e:
+        print e
+        return (-1, e.stderr)
+
 def setrep(repFactor,dirName):
     try:
         return (0,sh.hadoop("fs","-setrep","-R",repFactor,dirName))
