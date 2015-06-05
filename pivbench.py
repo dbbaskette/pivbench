@@ -361,6 +361,8 @@ def cliParse():
                                required=True)
     parser_analyze.add_argument("--db", dest='database', action="store", help="Database with Tables",
                                required=True)
+    parser_analyze.add_argument("--email", dest='emailAddress', action="store", help="Email Address for Reports",
+                                required=False)
 
     parser_clean.add_argument("--scale", dest='scale', action="store", help="Scale:  30000=30TB",
                                required=True)
@@ -413,7 +415,7 @@ def loadHawqTables(master,username,password,database):
             print "----------------------------------------"
 
 
-def analyzeHawqTables(master, database, username, password, emailAddress):
+def analyzeHawqTables(master, database, username, password, emailAddress=""):
     loggerInfo = buildReportLogger("analyze")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
@@ -660,8 +662,13 @@ def main(args):
 
 
     elif (args.subparser_name=="analyze"):
+
         password = getGpadminCreds(args.hawqMaster)
-        analyzeHawqTables(args.hawqMaster,args.database,username,password)
+        if (args.emailAddress):
+            analyzeHawqTables(args.hawqMaster, args.database, username, password, args.emailAddress)
+        else:
+            analyzeHawqTables(args.hawqMaster, args.database, username, password)
+
     elif(args.subparser_name=="report"):
         capacityReport(args.namenode,args.hdfsDir)
 
