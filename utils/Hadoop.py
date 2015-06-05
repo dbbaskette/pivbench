@@ -1,6 +1,8 @@
 __author__ = 'dbbaskette'
 
 import sh
+import requests
+
 
 def ls(hdfsPath):
     try:
@@ -43,4 +45,14 @@ def size(hdfsPath):
         print e
         return (-1,e.stderr)
 
+
+def appStatus(resourceManager):
+    url = "http" + resourceManager + ":8088/ws/v1/cluster/apps"
+    print requests.get(url)
+
 # cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
+# url = "http://" + hostName + ":8080/api/v1/stacks/PHD/versions/3.0/operating_systems/redhat6/repositories/PHD-3.0"
+# requests.put(url, auth=auth, headers=headers, data=payload)
+
+
+

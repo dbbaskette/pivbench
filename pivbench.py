@@ -75,7 +75,6 @@ def buildGen():
     print "Build Complete"
 
 
-
 #
 # def getSegmentMapping(host):
 #     hawqURI=queries.uri("10.103.42.155", port=5432, dbname='tpcds', user='gpadmin', password='gpadmin')
@@ -123,7 +122,7 @@ def generateData(scale, base, namenode, tableName=""):
 
     for file in glob.glob("target/*.jar"):
         jarFile = file
-
+    Hadoop.appStatus("tpcds2")
     uniInfoLog("Data Generation MapRed Job Starting", report)
     # TABLE GEN DOESN"T WORK, SO COMMENTING THIS OUT TO KEEP FROM RUNNING IT
     # if tableName:
@@ -133,7 +132,7 @@ def generateData(scale, base, namenode, tableName=""):
     result = Hadoop.run(jarFile, scale, base)
     print result
     uniInfoLog("Data Generation MapRed Job Complete", report)
-    uniInfoLog("Changing Replication Factor of RawData to 2")
+    uniInfoLog("Changing Replication Factor of RawData to 2", report)
     result = Hadoop.setrep(2,base)
 
 
