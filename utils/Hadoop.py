@@ -47,7 +47,7 @@ def size(hdfsPath):
 
 
 def appStatus(resourceManager):
-    url = "http" + resourceManager + ":8088/ws/v1/cluster/apps"
+    url = "http://" + resourceManager + ":8088/ws/v1/cluster/apps"
     print requests.get(url)
 
 # cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
