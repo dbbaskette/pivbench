@@ -240,7 +240,7 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
         for query in queryLocations:
             uniInfoLog(clearBuffers(hostsFile,adminUser,adminPassword),report)
             ddlFile = open(query,"r")
-            queryName = (query.split("/")[3]).split(".")[0]
+            queryName = ((query.split("/")[3]).split(".")[0]).rstrip()
             queryString = ddlFile.read()
             startTime = time.time()
             result = session.query(queryString)
@@ -493,21 +493,21 @@ def partitionTables(master, parts, username, password, database, orientation, by
     else:
         loadList = sorted(glob.glob('./hawq-ddl/load-part/*.sql'))
 
-    # tableList = sorted(glob.glob('./hawq-ddl/hawq-part/*.sql'))
-    # with queries.Session(hawqURI) as session:
-    # for table in tableList:
-    #         ddlFile = open(table,"r")
-    #         tableName = (table.split("/")[3]).split(".")[0]
-    #         createStatus = "Creating Table: "+tableName
-    #         uniInfoLog(createStatus,report)
-    #         tableDDL = ddlFile.read()
-    #         tableDDL = tableDDL.replace("$PARTS",parts)
-    #         tableDDL = tableDDL.replace("$ORIENTATION", orientation)
-    #         result = session.query(tableDDL)
-    #         createStatus = "Table Created: "+tableName
-    #         uniInfoLog(createStatus,report)
-    #         if emailAddress:
-    #             Email.sendEmail(emailAddress,createStatus,createStatus)
+    tableList = sorted(glob.glob('./hawq-ddl/hawq-part/*.sql'))
+    with queries.Session(hawqURI) as session:
+        for table in tableList:
+            ddlFile = open(table, "r")
+            tableName = (table.split("/")[3]).split(".")[0]
+            createStatus = "Creating Table: " + tableName
+            uniInfoLog(createStatus, report)
+            tableDDL = ddlFile.read()
+            tableDDL = tableDDL.replace("$PARTS", parts)
+            tableDDL = tableDDL.replace("$ORIENTATION", orientation)
+            result = session.query(tableDDL)
+            createStatus = "Table Created: " + tableName
+            uniInfoLog(createStatus, report)
+            if emailAddress:
+                Email.sendEmail(emailAddress, createStatus, createStatus)
 
 
     #Hard Coded for now because Schema is HardCoded as well
@@ -537,7 +537,7 @@ def partitionTables(master, parts, username, password, database, orientation, by
                 modDDL = modDDL.replace("$PARTNAME", str(partName))
                 modDDL = modDDL.replace("$PARTVALUE1", str(partStart))
                 modDDL = modDDL.replace("$PARTVALUE2", str(partEnd))
-               
+
                 with queries.Session(hawqURI) as session:
                     result = session.query(modDDL)
                 partStart = partEnd + 1
