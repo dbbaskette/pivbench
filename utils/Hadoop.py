@@ -55,9 +55,6 @@ def appStatus(resourceManager):
     print str(appsJSON['apps']["app"][0]["id"])
 
 
-
-    exit()
-
 # cd tpcds-gen; hadoop jar target/*.jar -d ${DIR}/${SCALE}/ -s ${SCALE})
 # url = "http://" + hostName + ":8080/api/v1/stacks/PHD/versions/3.0/operating_systems/redhat6/repositories/PHD-3.0"
 # requests.put(url, auth=auth, headers=headers, data=payload)
