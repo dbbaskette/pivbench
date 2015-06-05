@@ -240,7 +240,7 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
         for query in queryLocations:
             uniInfoLog(clearBuffers(hostsFile,adminUser,adminPassword),report)
             ddlFile = open(query,"r")
-            queryName = (query.split("/")[3]).split(".")[0]
+            queryName = ((query.split("/")[3]).split(".")[0]).rstrip()
             queryString = ddlFile.read()
             startTime = time.time()
             result = session.query(queryString)
@@ -537,7 +537,7 @@ def partitionTables(master, parts, username, password, database, orientation, by
                 modDDL = modDDL.replace("$PARTNAME", str(partName))
                 modDDL = modDDL.replace("$PARTVALUE1", str(partStart))
                 modDDL = modDDL.replace("$PARTVALUE2", str(partEnd))
-               
+
                 with queries.Session(hawqURI) as session:
                     result = session.query(modDDL)
                 partStart = partEnd + 1
