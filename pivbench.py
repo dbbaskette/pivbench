@@ -104,12 +104,19 @@ def buildGen():
 #     ssh.exec_command2(host,"root","password",'yum -y install gcc')
 #     ssh.exec_command2(host,"root","password",'rm -f /tmp/*.dat')
 
+def scaleConverter(scale):
+    if ("TB" in str.upper(scale)):
+        scaleNum = int(scale[:-2]) * 1024
+    else:
+        scaleNum = int(scale[:-2])
+    return scaleNum
 
 
 def generateData(scale, base, namenode, tableName=""):
     loggerInfo = buildReportLogger("gen")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
+    trueScale = scaleConverter(scale)
     if (Hadoop.ls(base))[0] == -1:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
@@ -130,7 +137,7 @@ def generateData(scale, base, namenode, tableName=""):
     #     result = Hadoop.runTable(jarFile, scale, base, tableName)
     # else:
     #     result = Hadoop.run(jarFile, scale, base)
-    result = Hadoop.run(jarFile, scale, base)
+    result = Hadoop.run(jarFile, str(trueScale), base)
     print result
     uniInfoLog("Data Generation MapRed Job Complete", report)
     uniInfoLog("Changing Replication Factor of RawData to 2")
@@ -342,7 +349,7 @@ def cliParse():
     # Add HIVE Support Later
     #parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
     #                          required=True)
-    parser_gen.add_argument("--scale", dest='scale', action="store", help="Scale:  30000=30TB",
+    parser_gen.add_argument("--scale", dest='scale', action="store", help="Scale: 1GB,5GB,10GB,100GB,1TB,3TB,5TB,10TB,30TB,100GB",
                                required=True)
     parser_gen.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
                                required=False)
