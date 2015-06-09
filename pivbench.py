@@ -220,7 +220,7 @@ def uniInfoLog(msg,logger):
 
 
 
-def executeQueries(master, database, username, password, queryList, hostsFile, adminUser, adminPassword,
+def executeQueries(master, database, username, password, queryList, hostsFile, adminUser, adminPassword,scale,
                    emailAddress=""):
 
 
@@ -245,10 +245,10 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
 
             if int(queryNum) < 10:
                 queryNum = "0"+queryNum
-            queryLocations.append('./hawq-ddl/queries/query_'+str(queryNum)+'.sql')
+            queryLocations.append('./hawq-ddl/queries/"+scale+"/query_'+str(queryNum)+'.sql')
     else:
         uniInfoLog("Running all Queries",report)
-        queryLocations = sorted(glob.glob('./hawq-ddl/queries/*.sql'))
+        queryLocations = sorted(glob.glob("/hawq-ddl/queries/"+scale+"/*.sql"))
 
     with queries.Session(hawqURI) as session:
         for query in queryLocations:
@@ -333,10 +333,13 @@ def cliParse():
                               required=False)
     parser_query.add_argument("--admin", dest='adminUser', action="store", help="User with Admin Prics (root)",
                               required=False, default="root")
+
+    parser_query.add_argument("--scale", dest='scale', action="store", help="User with Admin Prics (root)",
+                              required=True)
     parser_load.add_argument("--base", dest='base', action="store", help="Base HDFS Directory for Raw Data",
                                required=True)
-    parser_load.add_argument("--scale", dest='scale', action="store",
-                               help="Scale:  30000=30TB", required=True)
+    parser_load.add_argument("--scale", dest='scale', action="store",help="Scale: 1GB,5GB,10GB,100GB,1TB,3TB,5TB,10TB,30TB,100TB", required=True)
+
     # parser_load.add_argument("--orientation", dest='orientation', action="store", help="row/column/parquet",
     #                          required=False)
     parser_load.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
@@ -350,7 +353,7 @@ def cliParse():
     # Add HIVE Support Later
     #parser_load.add_argument("--engine", dest='engine', action="store", help="SQL Engine:  hawq/hive/impala/drill",
     #                          required=True)
-    parser_gen.add_argument("--scale", dest='scale', action="store", help="Scale: 1GB,5GB,10GB,100GB,1TB,3TB,5TB,10TB,30TB,100GB",
+    parser_gen.add_argument("--scale", dest='scale', action="store", help="Scale: 1GB,5GB,10GB,100GB,1TB,3TB,5TB,10TB,30TB,100TB",
                                required=True)
     parser_gen.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
                                required=False)
@@ -378,7 +381,7 @@ def cliParse():
     parser_analyze.add_argument("--email", dest='emailAddress', action="store", help="Email Address for Reports",
                                 required=False)
 
-    parser_clean.add_argument("--scale", dest='scale', action="store", help="Scale:  30000=30TB",
+    parser_clean.add_argument("--scale", dest='scale', action="store", help="Scale: 1GB,5GB,10GB,100GB,1TB,3TB,5TB,10TB,30TB,100TB",
                                required=True)
     parser_clean.add_argument("--namenode", dest='namenode', action="store", help="Namenode Address",
                                required=True)
