@@ -117,6 +117,8 @@ def generateData(scale, base, namenode, tableName=""):
     reportName = loggerInfo[0]
     report = loggerInfo[1]
     trueScale = scaleConverter(scale)
+    uniInfoLog("Creating Dataset for "+str(trueScale),report)
+    print str(trueScale)
     if (Hadoop.ls(base))[0] == -1:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
@@ -138,7 +140,6 @@ def generateData(scale, base, namenode, tableName=""):
     # else:
     #     result = Hadoop.run(jarFile, scale, base)
     result = Hadoop.run(jarFile, str(trueScale), base)
-    print result
     uniInfoLog("Data Generation MapRed Job Complete", report)
     uniInfoLog("Changing Replication Factor of RawData to 2")
     result = Hadoop.setrep(2,base)
