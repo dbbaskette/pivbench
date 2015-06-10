@@ -326,7 +326,7 @@ def cliParse():
                               required=False)
     parser_query.add_argument("--admin", dest='adminUser', action="store", help="User with Admin Prics (root)",
                               required=False, default="root")
-    parser_query.add_argument("--explain", help="Enable Explain Plan Output",action="store_true")
+    parser_query.add_argument("--explain", help="Enable Explain Plan Output",action="store_true",required=False)
 
     parser_query.add_argument("--scale", dest='scale', action="store", help="User with Admin Prics (root)",
                               required=True)
@@ -368,7 +368,7 @@ def cliParse():
                              required=False)
     parser_part.add_argument("--orientation", dest='orientation', action="store", help="Storage Format",
                              required=False)
-    parser_part.add_argument("--bypart", dest='bypart', action="store", help="True/False Load by Partition",
+    parser_part.add_argument("--bypart", action="store_true", help="Load by Partition",
                              required=False)
     parser_analyze.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
                                 required=True)
