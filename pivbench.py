@@ -211,15 +211,18 @@ def uniInfoLog(msg, logger):
     logger.info(msg)
 
 
-def executeQueries(master, database, username, password, queryList, hostsFile, adminUser, adminPassword, scale,
+def executeQueries(master, database, username, password, queryList, hostsFile, explain,adminUser, adminPassword, scale,
                    emailAddress=""):
     loggerInfo = buildReportLogger("queries")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
     header = []
+    explainString=""
+    if explain:
+        explainString = "explain analyze "
     startString = "Query Execution Phase"
     uniInfoLog(startString, report)
-    header = "Executing HAWQ Queries"
+    header = "Executing HAWQ Queries for a "+str(scale)+" Data Set"
     uniInfoLog(header, report)
     hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
     queryLocations = []
@@ -235,16 +238,23 @@ def executeQueries(master, database, username, password, queryList, hostsFile, a
             queryLocations.append('./hawq-ddl/queries/"+scale+"/query_' + str(queryNum) + '.sql')
     else:
         uniInfoLog("Running all Queries", report)
-        queryLocations = sorted(glob.glob("/hawq-ddl/queries/" + scale + "/*.sql"))
+        queryLocations = sorted(glob.glob("./hawq-ddl/queries/" + scale + "/*.sql"))
 
     with queries.Session(hawqURI) as session:
         for query in queryLocations:
             uniInfoLog(clearBuffers(hostsFile, adminUser, adminPassword), report)
             ddlFile = open(query, "r")
-            queryName = ((query.split("/")[3]).split(".")[0]).rstrip()
+            queryName = ((query.split("/")[4]).split(".")[0]).rstrip()
             queryString = ddlFile.read()
+            queryString = explainString+queryString
             startTime = time.time()
             result = session.query(queryString)
+            if explain:
+                queryPlan=""
+                uniInfoLog(result.query,report)
+                for row in result:
+                    queryPlan = queryPlan+str(row['QUERY PLAN']+"\n")
+                uniInfoLog(queryPlan,report)
             stopTime = time.time()
             queryTime = stopTime - startTime
             results = "Query Complete: %s   Execution Time(s): %0.2f  Rows Returned: %s" % (
@@ -316,6 +326,7 @@ def cliParse():
                               required=False)
     parser_query.add_argument("--admin", dest='adminUser', action="store", help="User with Admin Prics (root)",
                               required=False, default="root")
+    parser_query.add_argument("--explain", help="Enable Explain Plan Output",action="store_true")
 
     parser_query.add_argument("--scale", dest='scale', action="store", help="User with Admin Prics (root)",
                               required=True)
@@ -636,14 +647,19 @@ def main(args):
 
         adminPassword = getAdminCreds(args.hostsFile, args.adminUser)
 
+        # explain=False
+        # if args.explain:
+        #     explain=True
+#def executeQueries(master, database, username, password, queryList, hostsFile, explain,adminUser, adminPassword, scale,
+#                   emailAddress=""):
         if (args.emailAddress):
-            executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
+            executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,args.explain,
                            args.adminUser,
-                           adminPassword, args.emailAddress)
+                           adminPassword, args.scale,args.emailAddress)
         else:
-            executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,
+            executeQueries(args.hawqMaster, args.database, username, password, queryList, args.hostsFile,args.explain,
                            args.adminUser,
-                           adminPassword)
+                           adminPassword,args.scale)
 
     elif (args.subparser_name == "part"):
 
