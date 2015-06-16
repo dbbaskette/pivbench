@@ -24,4 +24,7 @@ The application is broken into functions:
 Pre-Reqs
 --------
 yum -y install python-devel
+
 yum -y install postgresql-devel
+
+Download tpcds_kit.zip from TPC Website and place in tpcds-gen  (tpcds-gen/tpcds_kit.zip)
