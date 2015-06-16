@@ -47,8 +47,7 @@ dimensionTables = (
     'web_site')
 factTables = (
     'store_sales', 'store_returns', 'web_sales', 'web_returns', 'catalog_sales', 'catalog_returns', 'inventory')
-rowGroupSize = "1073741823"
-compressionType = "snappy"
+
 
 def buildGen():
     currentDir = os.getcwd()
@@ -369,6 +368,10 @@ def cliParse():
                              required=False)
     parser_part.add_argument("--orientation", dest='orientation', action="store", help="Storage Format",
                              required=False)
+    parser_part.add_argument("--rowgroupsize", dest='rowGroupSize', action="store", help="Parquet Row Group Size",
+                             required=False)
+    parser_part.add_argument("--compression", action="store_true", help="Enable Snappy Compression",
+                             required=False)
     parser_part.add_argument("--bypart", action="store_true", help="Load by Partition",
                              required=False)
     parser_analyze.add_argument("--master", dest='hawqMaster', action="store", help="HAWQ Master",
@@ -514,7 +517,8 @@ def getPartitionCount(master, database, username, password, table):
     return partitions
 
 
-def partitionTables(master, parts, username, password, database, orientation, byPart, emailAddress=""):
+def partitionTables(master, parts, username, password, database, orientation, byPart, compressType, rowGroupSize,
+                    emailAddress=""):
     loggerInfo = buildReportLogger("partitioning")
     reportName = loggerInfo[0]
     report = loggerInfo[1]
@@ -522,7 +526,7 @@ def partitionTables(master, parts, username, password, database, orientation, by
     uniInfoLog(startString, report)
     if orientation.upper() == "PARQUET":
         # orientation = "PARQUET,ROWGROUPSIZE=1073741823,COMPRESSTYPE=snappy"
-        orientation = "PARQUET,ROWGROUPSIZE=" + rowGroupSize + ",COMPRESSTYPE=" + compressionType
+        orientation = "PARQUET,ROWGROUPSIZE=" + rowGroupSize + ",COMPRESSTYPE=" + compressType
 
     hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
     if byPart:
@@ -670,6 +674,14 @@ def main(args):
         password = getGpadminCreds(args.hawqMaster)
         if (args.orientation):
             orientation = args.orientation
+            if (args.rowGroupSize):
+                rowGroupSize = args.rowGroupSize
+            else:
+                rowGroupSize = "8192"
+            if (args.compressType):
+                compressType = "SNAPPY"
+            else:
+                compressType = "NONE"
         else:
             orientation = "ROW"
         if (args.bypart):
