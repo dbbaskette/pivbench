@@ -678,10 +678,10 @@ def main(args):
                 rowGroupSize = args.rowGroupSize
             else:
                 rowGroupSize = "8192"
-            if (args.compressType):
-                compressType = "SNAPPY"
+            if (args.compression):
+                compression = "SNAPPY"
             else:
-                compressType = "NONE"
+                compression = "NONE"
         else:
             orientation = "ROW"
         if (args.bypart):
