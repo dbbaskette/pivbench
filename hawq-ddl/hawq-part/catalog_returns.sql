@@ -30,7 +30,7 @@ create table catalog_returns
     cr_store_credit           decimal(7,2)                  ,
     cr_net_loss               decimal(7,2)
 )
-with (appendonly=true, ORIENTATION=$ORIENTATION,blocksize=1048676)
+with (appendonly=true, ORIENTATION=$ORIENTATION,ROWGROUPSIZE=1073741823)
 distributed by (cr_item_sk, cr_order_number)
 partition by range(cr_returned_date_sk)
 

@@ -37,7 +37,7 @@ create table catalog_sales
     cs_net_paid_inc_ship_tax  decimal(7,2)                  ,
     cs_net_profit             decimal(7,2)
 )
-with (appendonly=true, ORIENTATION=$ORIENTATION,blocksize=1048676)
+with (appendonly=true, ORIENTATION=$ORIENTATION,ROWGROUPSIZE=1073741823)
 distributed by (cs_item_sk, cs_order_number)
 partition by range(cs_sold_date_sk)
 (start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),
