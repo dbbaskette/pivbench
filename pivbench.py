@@ -517,7 +517,7 @@ def getPartitionCount(master, database, username, password, table):
     return partitions
 
 
-def partitionTables(master, parts, username, password, database, orientation, byPart, compressType, rowGroupSize,
+def partitionTables(master, parts, username, password, database, orientation, byPart, compression, rowGroupSize,
                     emailAddress=""):
     loggerInfo = buildReportLogger("partitioning")
     reportName = loggerInfo[0]
@@ -526,7 +526,7 @@ def partitionTables(master, parts, username, password, database, orientation, by
     uniInfoLog(startString, report)
     if orientation.upper() == "PARQUET":
         # orientation = "PARQUET,ROWGROUPSIZE=1073741823,COMPRESSTYPE=snappy"
-        orientation = "PARQUET,ROWGROUPSIZE=" + rowGroupSize + ",COMPRESSTYPE=" + compressType
+        orientation = "PARQUET,ROWGROUPSIZE=" + rowGroupSize + ",COMPRESSTYPE=" + compression
 
     hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
     if byPart:
@@ -691,9 +691,11 @@ def main(args):
 
         if (args.emailAddress):
             partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation, byPart,
+                            compression, rowGroupSize,
                             args.emailAddress)
         else:
-            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation, byPart)
+            partitionTables(args.hawqMaster, args.parts, username, password, args.database, orientation, byPart,
+                            compression, rowGroupSize)
 
 
 
