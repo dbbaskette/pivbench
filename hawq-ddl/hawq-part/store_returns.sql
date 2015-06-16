@@ -23,7 +23,7 @@ create table store_returns
     sr_store_credit           decimal(7,2)                  ,
     sr_net_loss               decimal(7,2)
 )
-with (appendonly=true, ORIENTATION=$ORIENTATION,ROWGROUPSIZE=1073741823,COMPRESSTYPE=snappy)
+with (appendonly=true, ORIENTATION=$ORIENTATION)
 distributed by (sr_item_sk, sr_ticket_number)
 partition by range(sr_returned_date_sk)
 (start(2450815) INCLUSIVE end(2453005) INCLUSIVE every ($PARTS),

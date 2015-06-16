@@ -47,7 +47,8 @@ dimensionTables = (
     'web_site')
 factTables = (
     'store_sales', 'store_returns', 'web_sales', 'web_returns', 'catalog_sales', 'catalog_returns', 'inventory')
-
+rowGroupSize = "1073741823"
+compressionType = "snappy"
 
 def buildGen():
     currentDir = os.getcwd()
@@ -519,6 +520,9 @@ def partitionTables(master, parts, username, password, database, orientation, by
     report = loggerInfo[1]
     startString = "Partitioning Tables into " + str(parts) + " Day Partitions in " + orientation + " Format"
     uniInfoLog(startString, report)
+    if orientation.upper() == "PARQUET":
+        # orientation = "PARQUET,ROWGROUPSIZE=1073741823,COMPRESSTYPE=snappy"
+        orientation = "PARQUET,ROWGROUPSIZE=" + rowGroupSize + ",COMPRESSTYPE=" + compressionType
 
     hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
     if byPart:
