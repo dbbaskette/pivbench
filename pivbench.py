@@ -235,7 +235,7 @@ def executeQueries(master, database, username, password, queryList, hostsFile, e
 
             if int(queryNum) < 10:
                 queryNum = "0" + queryNum
-            queryLocations.append('./hawq-ddl/queries/"+scale+"/query_' + str(queryNum) + '.sql')
+            queryLocations.append("./hawq-ddl/queries/" + scale + "/query_" + str(queryNum) + ".sql")
     else:
         uniInfoLog("Running all Queries", report)
         queryLocations = sorted(glob.glob("./hawq-ddl/queries/" + scale + "/*.sql"))
