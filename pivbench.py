@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 __author__ = 'root'
 
 import glob
@@ -138,7 +139,7 @@ def generateData(scale, base, namenode, tableName=""):
     #     result = Hadoop.run(jarFile, scale, base)
     result = Hadoop.run(jarFile, str(trueScale), base)
     uniInfoLog("Data Generation MapRed Job Complete", report)
-    uniInfoLog("Changing Replication Factor of RawData to 2")
+    uniInfoLog("Changing Replication Factor of RawData to 2", report)
     result = Hadoop.setrep(2, base)
 
 
