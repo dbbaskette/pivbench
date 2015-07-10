@@ -115,7 +115,6 @@ def generateData(scale, base, namenode, tableName=""):
     report = loggerInfo[1]
     trueScale = scaleConverter(scale)
     uniInfoLog("Creating Dataset for " + str(trueScale), report)
-    print str(trueScale)
     if (Hadoop.ls(base))[0] == -1:
         result = Hadoop.mkdir(base)
         if result[0] < 0:
@@ -451,42 +450,49 @@ def analyzeHawqTables(master, database, username, password, emailAddress=""):
     uniInfoLog(startString, report)
     header = "Analyzing HAWQ Tables"
     uniInfoLog(header, report)
+    analyzeCMD = "analyzedb -d " + database + " -a -p 10"
+    ssh.exec_command2(master, username, password, analyzeCMD)
 
-    hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
-    with queries.Session(hawqURI) as session:
-        uniInfoLog("Analyze Dimension Tables", report)
-        for table in dimensionTables:
-            ddlString = "Analyze " + table
-            startTime = datetime.datetime.now()
-            uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
-            result = session.query(ddlString)
-            stopTime = datetime.datetime.now()
-            resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
-                stopTime - startTime)
-            uniInfoLog(resultString, report)
-            if emailAddress:
-                Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
-        uniInfoLog("Analyze Fact Tables", report)
+    # hawqURI = queries.uri(master, port=5432, dbname=database, user=username, password=password)
+    # with queries.Session(hawqURI) as session:
+    #     uniInfoLog("Analyze Dimension Tables", report)
+    #     for table in dimensionTables:
+    #         ddlString = "Analyze " + table
+    #         startTime = datetime.datetime.now()
+    #         uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
+    #         result = session.query(ddlString)
+    #         stopTime = datetime.datetime.now()
+    #         resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
+    #             stopTime - startTime)
+    #         uniInfoLog(resultString, report)
+    #         if emailAddress:
+    #             Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
+    #     uniInfoLog("Analyze Fact Tables", report)
+    #
+    #     for table in factTables:
+    #         ddlString = "analyze " + table
+    #         startTime = datetime.datetime.now()
+    #         uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
+    #         result = session.query(ddlString)
+    #         stopTime = datetime.datetime.now()
+    #         resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
+    #             stopTime - startTime)
+    #         uniInfoLog(resultString, report)
+    #         if emailAddress:
+    #             Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
+    #
+    #     if (emailAddress):
+    #         messageLines = []
+    #         with open(reportName, "r") as reportMsg:
+    #             for line in reportMsg.readlines():
+    #                 messageLines.append(line)
+    #             message = " ".join(messageLines)
+    #             Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4], message)
+    if (emailAddress):
+        Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4],
+                        "AnalyzeDB Complete")
 
-        for table in factTables:
-            ddlString = "analyze " + table
-            startTime = datetime.datetime.now()
-            uniInfoLog("Start " + ddlString + ": " + str(startTime), report)
-            result = session.query(ddlString)
-            stopTime = datetime.datetime.now()
-            resultString = "Completed " + ddlString + ": " + str(stopTime) + " Elapsed Time: " + str(
-                stopTime - startTime)
-            uniInfoLog(resultString, report)
-            if emailAddress:
-                Email.sendEmail(emailAddress, ddlString + " Complete", resultString)
 
-        if (emailAddress):
-            messageLines = []
-            with open(reportName, "r") as reportMsg:
-                for line in reportMsg.readlines():
-                    messageLines.append(line)
-                message = " ".join(messageLines)
-                Email.sendEmail(emailAddress, "Table Analyze Final Report: " + (reportName.split('/')[2])[:-4], message)
 
 
 def rowCount(master, database, username, password, table):

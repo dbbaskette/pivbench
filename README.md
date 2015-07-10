@@ -1,5 +1,5 @@
 # pivbench
-###Pivotal HAWQ TPC-DS Benchmarking Tool
+###Pivotal HAWQ Benchmarking Tool
 --
 
 Automation of the TPC-DS benchmark for Pivotal HAWQ.
@@ -27,4 +27,5 @@ yum -y install python-devel
 
 yum -y install postgresql-devel
 
-Download tpcds_kit.zip from TPC Website and place in tpcds-gen  (tpcds-gen/tpcds_kit.zip)
+Download DSTools.zio from TPC Website and place in tpcds-gen renaming it to tpcds_kit.zip  (tpcds-gen/tpcds_kit.zip)  (THIS WILL BE CHANGED SOON)
+
